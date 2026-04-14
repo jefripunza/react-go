@@ -1,36 +1,45 @@
-import { Outlet, useNavigate, useLocation } from "react-router";
+import {
+  Outlet,
+  useNavigate,
+  useLocation,
+  type IndexRouteObject,
+  Link,
+} from "react-router";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
 import { useThemeStore } from "@/stores/themeStore";
 import {
-  RiDashboardLine,
   RiLogoutBoxLine,
   RiMenuLine,
   RiCloseLine,
   RiSunLine,
   RiMoonLine,
-  RiSettings3Line,
 } from "react-icons/ri";
 import Loading from "@/components/Loading";
 import version from "@/version";
+import { no_auth_navigate } from "@/constant";
+import type { LanguageCode } from "@/stores/languageStore";
+import type { UserRole } from "@/types/user";
+import { useLanguageStore } from "@/stores/languageStore";
 
-const navItems = [
-  {
-    label: "Dashboard",
-    path: "/app/dashboard",
-    icon: RiDashboardLine,
-  },
-  {
-    label: "Setting",
-    path: "/app/setting",
-    icon: RiSettings3Line,
-  },
-];
+export interface ISidebarLink extends Partial<IndexRouteObject> {
+  show_hr?: boolean;
+  hr_title?: string;
+  label: Record<LanguageCode, string>;
+  roles: UserRole[];
+  icon: React.ComponentType<{ size?: number }>;
+  isHide?: boolean;
+}
 
-export default function AppLayout() {
+interface AppLayoutProps {
+  sidebarLinks: ISidebarLink[];
+}
+
+export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { language } = useLanguageStore();
 
   const { isLoading, validateToken, logout } = useAuthStore();
   const {
@@ -48,7 +57,7 @@ export default function AppLayout() {
     const checkAuth = async () => {
       const valid = await validateToken("app");
       if (!valid) {
-        navigate("/", { replace: true });
+        navigate(no_auth_navigate, { replace: true });
       }
     };
     checkAuth();
@@ -80,7 +89,7 @@ export default function AppLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate("/", { replace: true });
+    navigate(no_auth_navigate, { replace: true });
   };
 
   const handleNavClick = (path: string) => {
@@ -157,13 +166,17 @@ export default function AppLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
+          {sidebarLinks.map((link) => {
+            const isActive = location.pathname === `/app/${link.path}`;
+            const Icon = link.icon;
             return (
-              <button
-                key={item.path}
-                onClick={() => handleNavClick(item.path)}
+              <Link
+                key={`/app/${link.path}`}
+                to={`/app/${link.path}`}
+                onClick={() => {
+                  if (window.innerWidth < 768)
+                    handleNavClick(link.path as string);
+                }}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                   ${
@@ -173,13 +186,13 @@ export default function AppLayout() {
                   }
                   ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}
                 `}
-                title={effectiveCollapsed ? item.label : undefined}
+                title={effectiveCollapsed ? language(link.label) : undefined}
               >
-                <Icon className="w-4.5 h-4.5 shrink-0" />
+                <Icon size={20} />
                 {(!effectiveCollapsed || isMobileOpen) && (
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate">{language(link.label)}</span>
                 )}
-              </button>
+              </Link>
             );
           })}
         </nav>

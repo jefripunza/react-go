@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useThemeStore } from "@/stores/themeStore";
 import Loading from "@/components/Loading";
+import { auth_to_app_navigate } from "@/constant";
 
 export default function AuthLayout() {
   const navigate = useNavigate();
@@ -15,8 +16,12 @@ export default function AuthLayout() {
     const checkAuth = async () => {
       const valid = await validateToken("auth");
       if (valid) {
-        if (!location.pathname.startsWith("/app")) {
-          navigate("/app/dashboard", { replace: true });
+        if (
+          !location.pathname.startsWith(
+            "/" + auth_to_app_navigate.split("/")[1],
+          )
+        ) {
+          navigate(auth_to_app_navigate, { replace: true });
         }
       }
     };

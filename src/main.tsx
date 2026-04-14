@@ -1,73 +1,7 @@
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter } from "react-router";
-import { RouterProvider } from "react-router/dom";
 
 import "@/index.css";
 
-// Layouts
-import MainLayout from "@/layouts/MainLayout";
-import AuthLayout from "@/layouts/AuthLayout";
-import AppLayout from "@/layouts/AppLayout";
+import App from "@/App";
 
-// Pages
-import LandingPage from "@/pages/public/LandingPage";
-import LoginPage from "@/pages/auth/LoginPage";
-import DashboardPage from "@/pages/app/DashboardPage";
-import SettingsPage from "@/pages/app/SettingPage";
-
-// Documentation
-import DocPage from "@/pages/DocPage";
-
-// Errors
-import ErrorBoundaryPage from "@/pages/error/ErrorBoundaryPage";
-import NotFoundPage from "@/pages/error/NotFoundPage";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <MainLayout />,
-    children: [
-      {
-        index: true,
-        element: <LandingPage />,
-      },
-      {
-        path: "login",
-        element: <AuthLayout />,
-        children: [
-          {
-            index: true,
-            element: <LoginPage />,
-          },
-        ],
-      },
-      {
-        path: "app",
-        element: <AppLayout />,
-        children: [
-          {
-            path: "dashboard",
-            element: <DashboardPage />,
-          },
-          {
-            path: "setting",
-            element: <SettingsPage />,
-          },
-        ],
-      },
-    ],
-    errorElement: <ErrorBoundaryPage />,
-  },
-  {
-    path: "doc",
-    element: <DocPage />,
-  },
-  {
-    path: "*",
-    element: <NotFoundPage />,
-  },
-]);
-
-createRoot(document.getElementById("root")!).render(
-  <RouterProvider router={router} />,
-);
+createRoot(document.getElementById("root")!).render(<App />);

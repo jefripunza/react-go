@@ -3,3 +3,14 @@ export interface Response<T> {
   message: string;
   data: T;
 }
+
+export interface WithPagination<T> {
+  rows: T[];
+  pagination: PaginationMeta;
+}
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+}

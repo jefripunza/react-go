@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { RiKeyLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import SectionTitle from "@/components/SectionTitle";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 import { settingService } from "@/services/setting.service";
 
 export default function SettingPage() {
