@@ -1,14 +1,13 @@
-import { Gotify } from "gotify";
+import { GotifyClient } from "gotify-client";
 
-export const client = new Gotify({
-  server: "http://gotify.example.com",
+const client = new GotifyClient("http://gotify.home", {
+  // You must specify at least 1 key
+  app: "app_api_key",
+  client: "client_api_key",
 });
 
-export const sendNotification = async (title: string, message: string) => {
-  await client.send({
-    app: "yourAppToken",
-    title,
-    message,
-    priority: 5,
+export const sendNotification = async (_title: string, _message: string) => {
+  await client.message.createMessage({
+    message: "Test message!",
   });
 };

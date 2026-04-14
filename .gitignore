@@ -34,3 +34,5 @@ yarn.lock
 
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo
+
+/database/system.sqlite

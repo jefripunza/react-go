@@ -18,7 +18,7 @@
     "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.15.0",
     "clsx": "^2.1.1",
-    "gotify": "^1.1.0",
+    "gotify-client": "^0.4.2",
     "highcharts": "^12.6.0",
     "highcharts-react-official": "^3.2.3",
     "react": "^19.2.0",
