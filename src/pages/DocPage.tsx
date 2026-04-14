@@ -1,15 +1,13 @@
 import { useState } from "react";
 import {
-  LayoutDashboard,
-  Group,
-  FileText,
-  Shield,
-  Key,
-  Settings,
-  ChevronRight,
-  Menu,
-  X,
-} from "lucide-react";
+  RiBookOpenLine,
+  RiRocketLine,
+  RiStackLine,
+  RiSettings3Line,
+  RiArrowRightSLine,
+  RiMenuLine,
+  RiCloseLine,
+} from "react-icons/ri";
 
 interface DocSection {
   id: string;
@@ -26,111 +24,175 @@ interface DocItem {
 
 const sections: DocSection[] = [
   {
-    id: "intro",
-    label: "Introduction",
-    icon: LayoutDashboard,
+    id: "getting-started",
+    label: "Getting Started",
+    icon: RiRocketLine,
     items: [
       {
-        id: "what-is-apimq",
-        title: "What is ApiMQ?",
+        id: "introduction",
+        title: "Introduction",
         content: (
           <div className="space-y-4">
             <p>
-              <strong>ApiMQ</strong> is a lightweight, self-hosted HTTP message
-              queue manager. It lets you queue outgoing HTTP requests and
-              process them reliably with configurable concurrency, retry logic,
-              delays, and scheduled delivery.
+              Welcome to the <strong>Base Project</strong> documentation. This
+              project is a starter template for building full-stack web
+              applications with <strong>React</strong> (frontend) and{" "}
+              <strong>Go</strong> (backend).
             </p>
-            <h3>Key Features</h3>
+            <h3>Features</h3>
             <ul>
               <li>
-                <strong>Queue-based delivery</strong> — messages are stored and
-                dispatched to your configured origin URL.
+                <strong>React + Vite</strong> — Fast dev server with HMR and
+                optimized production builds.
               </li>
               <li>
-                <strong>Scheduled sending</strong> — configure a queue to send
-                messages at a fixed daily time (e.g. 08:00 every day).
+                <strong>Go Backend</strong> — Compiled binary with embedded
+                frontend via <code>embed.FS</code>.
               </li>
               <li>
-                <strong>Batch &amp; delay control</strong> — send N messages per
-                interval with fixed or random delays between them.
+                <strong>TailwindCSS v4</strong> — Utility-first CSS with dark
+                mode support.
               </li>
               <li>
-                <strong>IP/Domain whitelist</strong> — restrict which callers
-                can submit messages to the public <code>/queue</code> endpoint.
+                <strong>Authentication</strong> — Built-in login flow with token
+                validation.
               </li>
               <li>
-                <strong>API Key auth</strong> — require a valid key via
-                <code>X-Api-Key</code> header or <code>?api_key</code> query
-                param.
+                <strong>Dark / Light Mode</strong> — Theme toggle with
+                persistent state.
               </li>
               <li>
-                <strong>Real-time dashboard</strong> — Socket.IO-powered live
-                stats and queue throughput charts.
+                <strong>Responsive Layout</strong> — Collapsible sidebar with
+                mobile support.
               </li>
             </ul>
-            <h3>Quick Start</h3>
-            <CodeBlock>{`# Build and run
-go run main.go
-
-# Access the dashboard
-open http://localhost:3000/app/dashboard
-
-# Submit a message to a queue (public endpoint)
-curl -X POST http://localhost:3000/queue \\
-  -H "Content-Type: application/json" \\
-  -H "X-Api-Key: apimq_<your-key>" \\
-  -d '{
-    "key": "my-queue",
-    "method": "POST",
-    "body": "{\\"event\\": \\"user.signed_up\\", \\"id\\": 42}"
-  }'`}</CodeBlock>
           </div>
         ),
       },
       {
-        id: "architecture",
-        title: "Architecture",
+        id: "quick-start",
+        title: "Quick Start",
         content: (
           <div className="space-y-4">
-            <p>
-              ApiMQ is a single Go binary that embeds the React frontend in the
-              compiled binary via <code>embed.FS</code>.
-            </p>
-            <h3>Components</h3>
+            <p>Get the project up and running in a few steps:</p>
+            <h3>Prerequisites</h3>
+            <ul>
+              <li>
+                <strong>Node.js</strong> ≥ 18 (or Bun)
+              </li>
+              <li>
+                <strong>Go</strong> ≥ 1.21
+              </li>
+            </ul>
+            <h3>Installation</h3>
+            <CodeBlock>{`# Clone the repository
+git clone https://github.com/jefripunza/react-go.git
+cd react-go
+
+# Install frontend dependencies
+bun install   # or: npm install
+
+# Run in development mode
+bun run dev   # or: npm run dev
+
+# Build for production
+bun run build # or: npm run build`}</CodeBlock>
+            <h3>Running the Go Backend</h3>
+            <CodeBlock>{`# Download Go dependencies
+go mod download
+
+# Run the server
+go run main.go
+
+# Build binary
+go build -o react-go main.go
+./react-go`}</CodeBlock>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: "structure",
+    label: "Project Structure",
+    icon: RiStackLine,
+    items: [
+      {
+        id: "folder-structure",
+        title: "Folder Structure",
+        content: (
+          <div className="space-y-4">
+            <p>The project follows a standard React + Go layout:</p>
+            <CodeBlock>{`react-go/
+├── src/                    # React frontend source
+│   ├── components/         # Reusable UI components
+│   ├── layouts/            # Layout wrappers (App, Auth, Main)
+│   ├── pages/              # Page components
+│   │   ├── app/            # Authenticated pages
+│   │   ├── auth/           # Login page
+│   │   └── error/          # Error pages
+│   ├── stores/             # Zustand state stores
+│   ├── services/           # API service layer
+│   ├── lib/                # Utility libraries
+│   ├── types/              # TypeScript type definitions
+│   └── main.tsx            # App entry point & routing
+├── main.go                 # Go backend entry point
+├── dist/                   # Production build output
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── Dockerfile`}</CodeBlock>
+          </div>
+        ),
+      },
+      {
+        id: "tech-stack",
+        title: "Tech Stack",
+        content: (
+          <div className="space-y-4">
             <table>
               <thead>
                 <tr>
                   <th>Layer</th>
                   <th>Technology</th>
-                  <th>Role</th>
+                  <th>Purpose</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>HTTP server</td>
-                  <td>Go Fiber v2</td>
-                  <td>REST API, static file serving</td>
-                </tr>
-                <tr>
-                  <td>Realtime</td>
-                  <td>Socket.IO v4</td>
-                  <td>Live stats push to dashboard</td>
-                </tr>
-                <tr>
-                  <td>Database</td>
-                  <td>SQLite + GORM</td>
-                  <td>Persistent queue &amp; message storage</td>
-                </tr>
-                <tr>
-                  <td>Worker</td>
-                  <td>Go goroutines</td>
-                  <td>Per-queue HTTP dispatch workers</td>
-                </tr>
                 <tr>
                   <td>Frontend</td>
-                  <td>React + Vite + Tailwind</td>
-                  <td>Admin dashboard UI</td>
+                  <td>React 19 + Vite</td>
+                  <td>UI framework with fast builder</td>
+                </tr>
+                <tr>
+                  <td>Styling</td>
+                  <td>TailwindCSS v4</td>
+                  <td>Utility-first CSS</td>
+                </tr>
+                <tr>
+                  <td>State</td>
+                  <td>Zustand</td>
+                  <td>Lightweight state management</td>
+                </tr>
+                <tr>
+                  <td>Icons</td>
+                  <td>react-icons</td>
+                  <td>Icon library</td>
+                </tr>
+                <tr>
+                  <td>HTTP</td>
+                  <td>Axios</td>
+                  <td>API client</td>
+                </tr>
+                <tr>
+                  <td>Backend</td>
+                  <td>Go</td>
+                  <td>API server with embedded frontend</td>
+                </tr>
+                <tr>
+                  <td>Routing</td>
+                  <td>React Router v7</td>
+                  <td>Client-side routing</td>
                 </tr>
               </tbody>
             </table>
@@ -140,483 +202,77 @@ curl -X POST http://localhost:3000/queue \\
     ],
   },
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
+    id: "customization",
+    label: "Customization",
+    icon: RiSettings3Line,
     items: [
       {
-        id: "dashboard-overview",
-        title: "Overview",
+        id: "theming",
+        title: "Theming",
         content: (
           <div className="space-y-4">
             <p>
-              The Dashboard page gives a real-time overview of all queues and
-              message processing activity.
+              Themes are defined in <code>src/index.css</code> using CSS custom
+              properties. The project supports both dark and light modes.
             </p>
-            <h3>Stat Cards</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Card</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Total Queues</td>
-                  <td>Number of configured queues.</td>
-                </tr>
-                <tr>
-                  <td>Total Messages</td>
-                  <td>All messages across all queues and statuses.</td>
-                </tr>
-                <tr>
-                  <td>Completed</td>
-                  <td>Messages successfully dispatched.</td>
-                </tr>
-                <tr>
-                  <td>Pending</td>
-                  <td>Messages ready to be processed next.</td>
-                </tr>
-                <tr>
-                  <td>Timing</td>
-                  <td>Messages waiting for their scheduled send time.</td>
-                </tr>
-                <tr>
-                  <td>Failed</td>
-                  <td>Messages that failed and have not been acknowledged.</td>
-                </tr>
-              </tbody>
-            </table>
-            <h3>Live Updates</h3>
-            <p>
-              Stats are pushed every second via the Socket.IO{" "}
-              <code>live_data</code> room. The frontend joins this room on mount
-              and updates the cards without polling.
-            </p>
-            <h3>Queue Throughput Chart</h3>
-            <p>
-              A live line chart shows one line per queue, plotting message
-              throughput over the last 60 seconds.
-            </p>
-          </div>
-        ),
-      },
-    ],
-  },
-  {
-    id: "queues",
-    label: "Queues",
-    icon: Group,
-    items: [
-      {
-        id: "queues-overview",
-        title: "Queue Overview",
-        content: (
-          <div className="space-y-4">
-            <p>
-              The Queues page lists all configured queues with their current
-              message count, throughput, and error status.
-            </p>
-            <h3>Queue Card Actions</h3>
-            <ul>
-              <li>
-                <strong>Enable/Disable toggle</strong> — pause or resume a queue
-                worker without deleting it.
-              </li>
-              <li>
-                <strong>Test message (⌨ icon)</strong> — send one or more test
-                messages directly from the UI with a JSON editor and optional
-                API key selection.
-              </li>
-              <li>
-                <strong>Configure (⚙ icon)</strong> — open the queue setup page.
-              </li>
-              <li>
-                <strong>Error count</strong> — click to open the failed messages
-                drawer.
-              </li>
-            </ul>
-          </div>
-        ),
-      },
-      {
-        id: "queues-create",
-        title: "Creating a Queue",
-        content: (
-          <div className="space-y-4">
-            <p>
-              Navigate to <strong>Queues → + New Queue</strong> to open the
-              setup form.
-            </p>
-            <h3>Required Fields</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Field</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Name</td>
-                  <td>Human-readable label shown in the UI.</td>
-                </tr>
-                <tr>
-                  <td>Key</td>
-                  <td>
-                    Unique slug used when submitting messages (e.g.{" "}
-                    <code>my-queue</code>).
-                  </td>
-                </tr>
-                <tr>
-                  <td>Origin URL</td>
-                  <td>
-                    The HTTP endpoint ApiMQ will forward messages to (e.g.{" "}
-                    <code>https://api.example.com/webhook</code>).
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <h3>Optional Fields</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Field</th>
-                  <th>Default</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Batch Count</td>
-                  <td>1</td>
-                  <td>Number of messages sent per dispatch cycle.</td>
-                </tr>
-                <tr>
-                  <td>Timeout (s)</td>
-                  <td>30</td>
-                  <td>HTTP request timeout in seconds.</td>
-                </tr>
-                <tr>
-                  <td>Send Now</td>
-                  <td>true</td>
-                  <td>If disabled, messages wait until the scheduled time.</td>
-                </tr>
-                <tr>
-                  <td>Send Later Time</td>
-                  <td>—</td>
-                  <td>
-                    Daily time (HH:mm) at which messages are promoted to
-                    pending. Only applies when Send Now is off.
-                  </td>
-                </tr>
-                <tr>
-                  <td>Use Delay</td>
-                  <td>false</td>
-                  <td>Adds a fixed or random delay between each message.</td>
-                </tr>
-                <tr>
-                  <td>Delay (s)</td>
-                  <td>0</td>
-                  <td>Fixed seconds between messages.</td>
-                </tr>
-                <tr>
-                  <td>Random Delay</td>
-                  <td>false</td>
-                  <td>
-                    Randomize delay between <em>Delay Start</em> and{" "}
-                    <em>Delay End</em> seconds.
-                  </td>
-                </tr>
-                <tr>
-                  <td>Headers</td>
-                  <td>[]</td>
-                  <td>Default HTTP headers added to every outgoing request.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        ),
-      },
-      {
-        id: "queues-submit",
-        title: "Submitting Messages",
-        content: (
-          <div className="space-y-4">
-            <p>
-              Submit messages to the public <code>POST /queue</code> endpoint.
-              Authentication is via API Key (if configured) and/or IP/domain
-              whitelist.
-            </p>
-            <h3>Request Payload</h3>
-            <CodeBlock>{`POST /queue
-Content-Type: application/json
-X-Api-Key: apimq_<your-key>   // optional but required if keys exist
+            <h3>Color Variables</h3>
+            <CodeBlock>{`/* Dark mode (default) */
+:root {
+  --t-dark-900: #0a0a0f;
+  --t-dark-800: #12121a;
+  --t-foreground: #ffffff;
+}
 
-{
-  "key": "my-queue",           // queue key (or use queue_id)
-  "queue_id": "...",           // alternatively the queue UUID
-  "method": "POST",            // HTTP method to use when forwarding
-  "query": "{}",               // optional query string object (JSON string)
-  "body": "{'user': 1}",      // message body (JSON string)
-  "headers": "{}"              // optional extra headers (JSON string)
+/* Light mode */
+:root[data-theme="light"] {
+  --t-dark-900: #ffffff;
+  --t-dark-800: #f1f3f8;
+  --t-foreground: #111827;
 }`}</CodeBlock>
-            <h3>Message Status Flow</h3>
-            <CodeBlock>{`Insert message
-  │
-  ├─ Queue is "Send Now"  ──► status = pending ──► worker dispatches
-  │
-  └─ Queue is "Scheduled" ──► status = timing
-                                   │
-                                   └─ timing checker (every 5s) promotes to pending
-                                      when created_at ≤ today's scheduled time
-                                      and current time ≥ scheduled time`}</CodeBlock>
-          </div>
-        ),
-      },
-      {
-        id: "queues-timing",
-        title: "Scheduled (Timing) Queues",
-        content: (
-          <div className="space-y-4">
             <p>
-              When <strong>Send Now</strong> is disabled and a{" "}
-              <strong>Send Later Time</strong> is configured, messages are
-              stored with status <code>timing</code> and only promoted to{" "}
-              <code>pending</code> when the daily scheduled time arrives.
-            </p>
-            <h3>Execution Rules</h3>
-            <ul>
-              <li>
-                Insert at <strong>00:04</strong>, schedule at{" "}
-                <strong>00:05</strong> → executed at <strong>00:05</strong> ✅
-              </li>
-              <li>
-                Insert at <strong>00:05</strong>, schedule at{" "}
-                <strong>00:05</strong> → executed at <strong>00:05</strong> ✅
-              </li>
-              <li>
-                Insert at <strong>00:06</strong>, schedule at{" "}
-                <strong>00:05</strong> → executed at{" "}
-                <strong>00:05 tomorrow</strong> ⏳
-              </li>
-            </ul>
-            <p>
-              The timing checker runs every <strong>5 seconds</strong> and
-              evaluates eligibility per message by computing the{" "}
-              <em>next occurrence</em> of the scheduled time after the message's
-              own <code>created_at</code>.
+              The theme toggle is managed by{" "}
+              <code>src/stores/themeStore.ts</code> and persisted via Zustand's{" "}
+              <code>persist</code> middleware.
             </p>
           </div>
         ),
       },
-    ],
-  },
-  {
-    id: "log",
-    label: "Log",
-    icon: FileText,
-    items: [
       {
-        id: "log-overview",
-        title: "Log Overview",
+        id: "adding-pages",
+        title: "Adding Pages",
         content: (
           <div className="space-y-4">
-            <p>
-              The Log page shows a paginated, filterable list of all dispatch
-              attempts with their status and response details.
-            </p>
-            <h3>Log Entry Fields</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Field</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Status</td>
-                  <td>
-                    <code>processing</code>, <code>completed</code>, or{" "}
-                    <code>failed</code>.
-                  </td>
-                </tr>
-                <tr>
-                  <td>Queue</td>
-                  <td>Which queue dispatched the message.</td>
-                </tr>
-                <tr>
-                  <td>Method</td>
-                  <td>HTTP method used for the outgoing request.</td>
-                </tr>
-                <tr>
-                  <td>Response</td>
-                  <td>HTTP response body from the origin server.</td>
-                </tr>
-                <tr>
-                  <td>Error</td>
-                  <td>Error message if the request failed.</td>
-                </tr>
-                <tr>
-                  <td>Created At</td>
-                  <td>When the log entry was created.</td>
-                </tr>
-              </tbody>
-            </table>
-            <h3>Filtering &amp; Pagination</h3>
-            <ul>
-              <li>Filter by status: All / Processing / Completed / Failed.</li>
-              <li>
-                Cursor-based pagination — click <em>Load More</em> to fetch
-                older entries.
-              </li>
-              <li>Click any row to view full log details in a popup.</li>
-            </ul>
-          </div>
-        ),
-      },
-    ],
-  },
-  {
-    id: "whitelist",
-    label: "Whitelist",
-    icon: Shield,
-    items: [
-      {
-        id: "whitelist-overview",
-        title: "Whitelist Overview",
-        content: (
-          <div className="space-y-4">
-            <p>
-              The Whitelist controls which IP addresses and domains are allowed
-              to call the public <code>POST /queue</code> endpoint.
-            </p>
-            <Callout type="info">
-              If the whitelist is <strong>empty</strong>, all callers are
-              allowed. Once at least one entry is added, only matching callers
-              pass.
-            </Callout>
-            <h3>Entry Types</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Matches on</th>
-                  <th>Example</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <code>ip</code>
-                  </td>
-                  <td>
-                    Client IP address (<code>X-Forwarded-For</code> or direct).
-                  </td>
-                  <td>
-                    <code>192.168.1.10</code>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <code>domain</code>
-                  </td>
-                  <td>
-                    <code>Origin</code> or <code>Host</code> header.
-                  </td>
-                  <td>
-                    <code>api.example.com</code>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <h3>Adding an Entry</h3>
-            <p>
-              Click <strong>+ Add Entry</strong>, choose the type, enter the
-              value and an optional label, then click <strong>Add</strong>.
-            </p>
-          </div>
-        ),
-      },
-    ],
-  },
-  {
-    id: "apikey",
-    label: "API Keys",
-    icon: Key,
-    items: [
-      {
-        id: "apikey-overview",
-        title: "API Key Overview",
-        content: (
-          <div className="space-y-4">
-            <p>
-              API Keys protect the public <code>POST /queue</code> endpoint.
-              When at least one key exists, every inbound request must supply a
-              valid, active key.
-            </p>
-            <Callout type="info">
-              If <strong>no keys</strong> are configured, the endpoint is open
-              (no key required).
-            </Callout>
-            <h3>How to Pass a Key</h3>
-            <CodeBlock>{`# Via header (recommended)
-curl -H "X-Api-Key: apimq_abc123..." https://your-server/queue ...
-
-# Via query parameter
-curl "https://your-server/queue?api_key=apimq_abc123..." ...`}</CodeBlock>
-            <h3>Key Lifecycle</h3>
-            <ul>
-              <li>
-                <strong>Create</strong> — give the key a name; the value is
-                auto-generated (prefix <code>apimq_</code>).
-              </li>
-              <li>
-                <strong>Copy</strong> — use the copy button to copy the full key
-                value. It cannot be shown again after creation.
-              </li>
-              <li>
-                <strong>Disable/Enable</strong> — temporarily revoke access
-                without deleting the key.
-              </li>
-              <li>
-                <strong>Delete</strong> — permanently remove the key (requires
-                confirmation).
-              </li>
-            </ul>
-          </div>
-        ),
-      },
-    ],
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    icon: Settings,
-    items: [
-      {
-        id: "settings-overview",
-        title: "Settings Overview",
-        content: (
-          <div className="space-y-4">
-            <p>
-              The Settings page lets you change the admin dashboard password.
-            </p>
-            <h3>Change Password</h3>
-            <ul>
-              <li>Enter your current password.</li>
-              <li>Enter a new password (minimum 6 characters).</li>
-              <li>Confirm the new password.</li>
-              <li>
-                Click <strong>Update Password</strong>.
-              </li>
-            </ul>
-            <Callout type="warning">
-              The default password after a fresh install is set via the{" "}
-              <code>.env</code> file. Change it immediately in production.
-            </Callout>
+            <p>To add a new authenticated page:</p>
+            <h3>1. Create the Page Component</h3>
+            <CodeBlock>{`// src/pages/app/MyPage.tsx
+export default function MyPage() {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h2 className="text-xl font-bold text-foreground">
+          My Page
+        </h2>
+        <p className="text-sm text-dark-300 mt-1">
+          Description here
+        </p>
+      </div>
+      {/* Your content */}
+    </div>
+  );
+}`}</CodeBlock>
+            <h3>2. Add the Route</h3>
+            <CodeBlock>{`// src/main.tsx — add inside the "app" children array
+{
+  path: "my-page",
+  element: <MyPage />,
+}`}</CodeBlock>
+            <h3>3. Add to Sidebar Navigation</h3>
+            <CodeBlock>{`// src/layouts/AppLayout.tsx — add to navItems
+{
+  label: "My Page",
+  path: "/app/my-page",
+  icon: RiPageLine,
+}`}</CodeBlock>
           </div>
         ),
       },
@@ -634,29 +290,11 @@ function CodeBlock({ children }: { children: string }) {
   );
 }
 
-function Callout({
-  type,
-  children,
-}: {
-  type: "info" | "warning";
-  children: React.ReactNode;
-}) {
-  const styles =
-    type === "info"
-      ? "bg-accent-500/10 border-accent-500/30 text-accent-300"
-      : "bg-yellow-500/10 border-yellow-500/30 text-yellow-300";
-  return (
-    <div className={`border rounded-xl px-4 py-3 text-sm ${styles}`}>
-      {children}
-    </div>
-  );
-}
-
 // ─── Main page ───────────────────────────────────────────────────────────────
 
 export default function DocPage() {
-  const [activeSection, setActiveSection] = useState("intro");
-  const [activeItem, setActiveItem] = useState("what-is-apimq");
+  const [activeSection, setActiveSection] = useState("getting-started");
+  const [activeItem, setActiveItem] = useState("introduction");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const currentSection = sections.find((s) => s.id === activeSection);
@@ -690,17 +328,19 @@ export default function DocPage() {
         {/* Sidebar header */}
         <div className="h-16 flex items-center gap-3 px-5 border-b border-dark-600/50 shrink-0">
           <div className="w-7 h-7 rounded-lg bg-accent-500/20 border border-accent-500/30 flex items-center justify-center shrink-0">
-            <FileText className="w-4 h-4 text-accent-400" />
+            <RiBookOpenLine className="w-4 h-4 text-accent-400" />
           </div>
           <div>
-            <p className="text-sm font-bold text-foreground">ApiMQ Docs</p>
-            <p className="text-[10px] text-dark-400 font-mono">v0.1.0</p>
+            <p className="text-sm font-bold text-foreground">Docs</p>
+            <p className="text-[10px] text-dark-400 font-mono">
+              Base Project
+            </p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
             className="ml-auto lg:hidden text-dark-400 hover:text-foreground"
           >
-            <X className="w-4 h-4" />
+            <RiCloseLine className="w-4 h-4" />
           </button>
         </div>
 
@@ -721,7 +361,7 @@ export default function DocPage() {
                 >
                   <Icon className="w-4 h-4 shrink-0" />
                   <span className="flex-1 text-left">{section.label}</span>
-                  <ChevronRight
+                  <RiArrowRightSLine
                     className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-90" : ""}`}
                   />
                 </button>
@@ -766,7 +406,7 @@ export default function DocPage() {
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 text-dark-400 hover:text-foreground"
           >
-            <Menu className="w-5 h-5" />
+            <RiMenuLine className="w-5 h-5" />
           </button>
           {/* Breadcrumb */}
           <div className="flex items-center gap-1.5 text-sm font-mono text-dark-400">

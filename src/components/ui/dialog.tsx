@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { RiCloseLine } from "react-icons/ri";
 
 import { cn } from "@/lib/utils";
 
@@ -42,7 +42,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Close
         className="absolute right-4 top-4 rounded-lg p-2 text-dark-400 hover:text-foreground hover:bg-dark-700/50 transition-all focus:outline-none"
       >
-        <X className="h-4 w-4" />
+        <RiCloseLine className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

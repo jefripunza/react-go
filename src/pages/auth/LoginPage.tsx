@@ -1,6 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { Eye, EyeOff, Terminal, Zap, Lock } from "lucide-react";
+import {
+  RiEyeLine,
+  RiEyeOffLine,
+  RiTerminalLine,
+  RiLockLine,
+} from "react-icons/ri";
 import { useNavigate } from "react-router";
 
 export default function LoginPage() {
@@ -41,16 +46,16 @@ export default function LoginPage() {
       <div className="flex items-center gap-3 mb-8">
         <div className="relative">
           <div className="w-12 h-12 rounded-xl bg-accent-500/20 border border-accent-500/30 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-accent-400" />
+            <img src="/app.svg" alt="App" className="w-6 h-6" />
           </div>
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-neon-green rounded-full animate-pulse-glow" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">
-            ApiMQ
+            Base Project
           </h1>
           <p className="text-xs text-dark-300 font-mono">
-            Message Queue Dashboard
+            Admin Dashboard
           </p>
         </div>
       </div>
@@ -60,7 +65,7 @@ export default function LoginPage() {
         <div className="bg-dark-800/80 backdrop-blur-xl border border-dark-600/50 rounded-2xl p-8 shadow-2xl shadow-black/20">
           {/* Header */}
           <div className="flex items-center gap-2 mb-6">
-            <Lock className="w-4 h-4 text-dark-300" />
+            <RiLockLine className="w-4 h-4 text-dark-300" />
             <span className="text-sm text-dark-300 font-mono">
               authentication required
             </span>
@@ -93,9 +98,9 @@ export default function LoginPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-200 transition-colors"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
+                    <RiEyeOffLine className="w-4 h-4" />
                   ) : (
-                    <Eye className="w-4 h-4" />
+                    <RiEyeLine className="w-4 h-4" />
                   )}
                 </button>
               </div>
@@ -114,7 +119,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <Terminal className="w-4 h-4" />
+                  <RiTerminalLine className="w-4 h-4" />
                   <span>Sign In</span>
                 </>
               )}
@@ -124,7 +129,7 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="mt-6 pt-5 border-t border-dark-600/30">
             <p className="text-center text-xs text-dark-400 font-mono">
-              ApiMQ v0.1.0 — Secure Dashboard Access
+              Secure Dashboard Access
             </p>
           </div>
         </div>

@@ -1,7 +1,12 @@
-import { Circle } from "lucide-react";
-import type { QueueStatus } from "@/types/queue";
+import { RiCircleFill } from "react-icons/ri";
 
-export default function StatusBadge({ status }: { status: QueueStatus }) {
+export type StatusType = "running" | "idle" | "error";
+
+export interface Status {
+  status: StatusType;
+}
+
+export default function StatusBadge({ status }: Status) {
   const config = {
     running: {
       color: "text-neon-green bg-neon-green/10 border-neon-green/20",
@@ -18,7 +23,7 @@ export default function StatusBadge({ status }: { status: QueueStatus }) {
     <span
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-mono ${c.color}`}
     >
-      <Circle className="w-1.5 h-1.5 fill-current" />
+      <RiCircleFill className="w-1.5 h-1.5" />
       {status}
     </span>
   );

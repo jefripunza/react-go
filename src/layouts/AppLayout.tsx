@@ -4,18 +4,14 @@ import { useAuthStore } from "@/stores/authStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
 import { useThemeStore } from "@/stores/themeStore";
 import {
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  X,
-  Sun,
-  Moon,
-  Settings,
-  Shield,
-  FileText,
-  Group,
-  Key,
-} from "lucide-react";
+  RiDashboardLine,
+  RiLogoutBoxLine,
+  RiMenuLine,
+  RiCloseLine,
+  RiSunLine,
+  RiMoonLine,
+  RiSettings3Line,
+} from "react-icons/ri";
 import Loading from "@/components/Loading";
 import version from "@/version";
 
@@ -23,35 +19,12 @@ const navItems = [
   {
     label: "Dashboard",
     path: "/app/dashboard",
-    icon: LayoutDashboard,
+    icon: RiDashboardLine,
   },
-  {
-    label: "Queues",
-    path: "/app/queues",
-    icon: Group,
-  },
-  {
-    label: "Log",
-    path: "/app/log",
-    icon: FileText,
-  },
-  {
-    label: "Whitelist",
-    path: "/app/whitelist",
-    icon: Shield,
-  },
-  {
-    label: "Apikey",
-    path: "/app/apikey",
-    icon: Key,
-  },
-
-  // ----------------------- //
-
   {
     label: "Setting",
     path: "/app/setting",
-    icon: Settings,
+    icon: RiSettings3Line,
   },
 ];
 
@@ -149,13 +122,12 @@ export default function AppLayout() {
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
                   <div className="w-9 h-9 rounded-lg bg-accent-500/20 border border-accent-500/30 flex items-center justify-center overflow-hidden">
-                    <img src="/app.svg" alt="ApiMQ" className="w-5 h-5" />
+                    <img src="/app.svg" alt="App" className="w-5 h-5" />
                   </div>
-                  {/* <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-neon-green rounded-full animate-pulse-glow" /> */}
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-base font-bold text-foreground tracking-tight truncate">
-                    ApiMQ
+                    Base Project
                   </h1>
                   <p className="text-[10px] text-dark-400 font-mono truncate">
                     {version}
@@ -170,7 +142,7 @@ export default function AppLayout() {
               className="hidden lg:flex text-dark-300 hover:text-foreground transition-colors shrink-0 ml-auto"
               title={effectiveCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              <Menu className="w-5 h-5" />
+              <RiMenuLine className="w-5 h-5" />
             </button>
 
             {/* Mobile close button */}
@@ -178,7 +150,7 @@ export default function AppLayout() {
               onClick={() => setMobileOpen(false)}
               className="ml-auto lg:hidden text-dark-300 hover:text-foreground transition-colors"
             >
-              <X className="w-5 h-5" />
+              <RiCloseLine className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -220,7 +192,7 @@ export default function AppLayout() {
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-dark-300 hover:text-neon-red hover:bg-neon-red/5 transition-all ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}`}
             title="Sign out"
           >
-            <LogOut className="w-4.5 h-4.5 shrink-0" />
+            <RiLogoutBoxLine className="w-4.5 h-4.5 shrink-0" />
             {(!effectiveCollapsed || isMobileOpen) && <span>Sign Out</span>}
           </button>
         </div>
@@ -235,7 +207,7 @@ export default function AppLayout() {
             onClick={() => setMobileOpen(true)}
             className="lg:hidden text-dark-300 hover:text-foreground transition-colors mr-4"
           >
-            <Menu className="w-5 h-5" />
+            <RiMenuLine className="w-5 h-5" />
           </button>
 
           {/* Page title from route */}
@@ -257,9 +229,9 @@ export default function AppLayout() {
               }
             >
               {isDarkMode ? (
-                <Sun className="w-4 h-4" />
+                <RiSunLine className="w-4 h-4" />
               ) : (
-                <Moon className="w-4 h-4" />
+                <RiMoonLine className="w-4 h-4" />
               )}
             </button>
 

@@ -37,11 +37,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   logout: async () => {
     try {
       await authService.logout();
-      localStorage.removeItem("token");
     } catch (error) {
       console.error("Logout failed:", error);
+    } finally {
+      localStorage.removeItem("token");
+      set({ token: null, isAuthenticated: false });
     }
-    set({ token: null, isAuthenticated: false });
     return { success: true, message: null };
   },
   setAuthenticated: (value) => set({ isAuthenticated: value }),

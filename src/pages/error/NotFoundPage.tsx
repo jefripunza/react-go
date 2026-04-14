@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { ArrowLeft, SearchX } from "lucide-react";
+import { RiArrowLeftLine, RiSearchLine } from "react-icons/ri";
 
 export default function NotFoundPage() {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ export default function NotFoundPage() {
         <div className="bg-dark-800/60 border border-dark-600/40 rounded-2xl overflow-hidden">
           <div className="px-6 py-6 border-b border-dark-600/40 flex items-start gap-4">
             <div className="w-11 h-11 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center shrink-0">
-              <SearchX className="w-5 h-5 text-accent-400" />
+              <RiSearchLine className="w-5 h-5 text-accent-400" />
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl font-bold text-foreground tracking-tight">
@@ -32,7 +32,7 @@ export default function NotFoundPage() {
                 onClick={() => navigate(-1)}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-dark-300 hover:text-foreground border border-dark-600/50 hover:border-dark-500/60 rounded-xl transition-all"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <RiArrowLeftLine className="w-4 h-4" />
                 Back
               </button>
             </div>

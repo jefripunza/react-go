@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { RiArrowDownLine, RiArrowUpLine } from "react-icons/ri";
 
 export default function StatCard({
   label,
@@ -18,6 +18,7 @@ export default function StatCard({
     green: "bg-neon-green/10 text-neon-green border-neon-green/20",
     cyan: "bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20",
     yellow: "bg-neon-yellow/10 text-neon-yellow border-neon-yellow/20",
+    red: "bg-neon-red/10 text-neon-red border-neon-red/20",
   };
 
   return (
@@ -33,9 +34,9 @@ export default function StatCard({
             className={`flex items-center gap-1 text-xs font-mono ${trend.up ? "text-neon-green" : "text-neon-red"}`}
           >
             {trend.up ? (
-              <ArrowUpRight className="w-3 h-3" />
+              <RiArrowUpLine className="w-3 h-3" />
             ) : (
-              <ArrowDownRight className="w-3 h-3" />
+              <RiArrowDownLine className="w-3 h-3" />
             )}
             {trend.value}
           </div>

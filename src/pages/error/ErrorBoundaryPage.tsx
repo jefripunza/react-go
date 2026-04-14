@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
 import { isRouteErrorResponse, useRouteError, Link } from "react-router";
 import {
-  AlertTriangle,
-  Bug,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Home,
-} from "lucide-react";
+  RiAlertLine,
+  RiBugLine,
+  RiCheckLine,
+  RiArrowDownSLine,
+  RiArrowUpSLine,
+  RiFileCopyLine,
+  RiHomeLine,
+} from "react-icons/ri";
 
 function getErrorParts(err: unknown) {
   if (isRouteErrorResponse(err)) {
@@ -70,7 +70,7 @@ export default function ErrorBoundaryPage() {
           <div className="px-6 py-5 border-b border-dark-600/40 flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="rounded-xl flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-accent-400" />
+                <RiAlertLine className="w-5 h-5 text-accent-400" />
               </div>
               <div>
                 <h1 className="text-lg font-bold text-foreground">{title}</h1>
@@ -84,14 +84,14 @@ export default function ErrorBoundaryPage() {
                 to="/app/dashboard"
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-dark-300 hover:text-foreground border border-dark-600/50 hover:border-dark-500/60 rounded-xl transition-all"
               >
-                <Home className="w-4 h-4" />
+                <RiHomeLine className="w-4 h-4" />
                 Dashboard
               </Link>
               <Link
                 to="/"
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-dark-300 hover:text-foreground border border-dark-600/50 hover:border-dark-500/60 rounded-xl transition-all"
               >
-                <Bug className="w-4 h-4" />
+                <RiBugLine className="w-4 h-4" />
                 Login
               </Link>
             </div>
@@ -104,12 +104,12 @@ export default function ErrorBoundaryPage() {
                 onClick={() => setShowStack((v) => !v)}
                 className="flex items-center gap-2 hover:text-foreground transition-colors"
               >
-                <Bug className="w-4 h-4 text-accent-400" />
+                <RiBugLine className="w-4 h-4 text-accent-400" />
                 Stack trace
                 {showStack ? (
-                  <ChevronUp className="w-4 h-4 ml-1" />
+                  <RiArrowUpSLine className="w-4 h-4 ml-1" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 ml-1" />
+                  <RiArrowDownSLine className="w-4 h-4 ml-1" />
                 )}
               </button>
 
@@ -120,9 +120,9 @@ export default function ErrorBoundaryPage() {
                 title="Copy stack trace"
               >
                 {copied ? (
-                  <Check className="w-4 h-4 text-neon-green" />
+                  <RiCheckLine className="w-4 h-4 text-neon-green" />
                 ) : (
-                  <Copy className="w-4 h-4" />
+                  <RiFileCopyLine className="w-4 h-4" />
                 )}
                 <span className="text-xs">{copied ? "Copied" : "Copy"}</span>
               </button>

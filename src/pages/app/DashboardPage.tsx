@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Activity,
-  Inbox,
-  Clock,
-  AlertTriangle,
-  Timer,
-  CheckCircle2,
-} from "lucide-react";
+  RiPulseLine,
+  RiInboxLine,
+  RiTimeLine,
+  RiAlertLine,
+  RiTimerLine,
+  RiCheckboxCircleLine,
+} from "react-icons/ri";
 
 import StatCard from "@/components/StatCard";
 import LineChart from "@/components/LineChart";
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       <div>
         <h2 className="text-xl font-bold text-foreground">Dashboard</h2>
         <p className="text-sm text-dark-300 mt-1">
-          Real-time overview of your message queues
+          Real-time overview of your system
         </p>
       </div>
 
@@ -104,40 +104,25 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         <StatCard
           label="Total Queues"
-          value={stats.total_queues}
-          icon={Inbox}
+          value={0}
+          icon={RiInboxLine}
           color="indigo"
         />
         <StatCard
           label="Total Messages"
-          value={stats.total_messages}
-          icon={Activity}
+          value={0}
+          icon={RiPulseLine}
           color="green"
         />
         <StatCard
           label="Completed"
-          value={stats.total_completed}
-          icon={CheckCircle2}
+          value={0}
+          icon={RiCheckboxCircleLine}
           color="cyan"
         />
-        <StatCard
-          label="Pending"
-          value={stats.total_pending}
-          icon={Clock}
-          color="yellow"
-        />
-        <StatCard
-          label="Timing"
-          value={stats.total_timing}
-          icon={Timer}
-          color="indigo"
-        />
-        <StatCard
-          label="Failed"
-          value={stats.total_failed}
-          icon={AlertTriangle}
-          color="red"
-        />
+        <StatCard label="Pending" value={0} icon={RiTimeLine} color="yellow" />
+        <StatCard label="Timing" value={0} icon={RiTimerLine} color="indigo" />
+        <StatCard label="Failed" value={0} icon={RiAlertLine} color="red" />
       </div>
 
       {/* Queue chart */}

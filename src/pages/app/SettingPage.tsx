@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Key, Eye, EyeOff } from "lucide-react";
+import { RiKeyLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import SectionTitle from "@/components/SectionTitle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +55,7 @@ export default function SettingPage() {
       <div>
         <h2 className="text-xl font-bold text-foreground">Setting</h2>
         <p className="text-sm text-dark-300 mt-1">
-          Manage your account, appearance, and API configuration
+          Manage your account and configuration
         </p>
       </div>
 
@@ -79,7 +79,7 @@ export default function SettingPage() {
       >
         <SectionTitle>Change Password</SectionTitle>
         <div className="flex items-center gap-2 mb-2">
-          <Key className="w-4 h-4 text-dark-400" />
+          <RiKeyLine className="w-4 h-4 text-dark-400" />
           <p className="text-xs text-dark-400 font-mono">
             Update your account password
           </p>
@@ -101,9 +101,9 @@ export default function SettingPage() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-foreground transition-colors"
             >
               {showCurrent ? (
-                <EyeOff className="w-4 h-4" />
+                <RiEyeOffLine className="w-4 h-4" />
               ) : (
-                <Eye className="w-4 h-4" />
+                <RiEyeLine className="w-4 h-4" />
               )}
             </button>
           </div>
@@ -126,9 +126,9 @@ export default function SettingPage() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-foreground transition-colors"
               >
                 {showNew ? (
-                  <EyeOff className="w-4 h-4" />
+                  <RiEyeOffLine className="w-4 h-4" />
                 ) : (
-                  <Eye className="w-4 h-4" />
+                  <RiEyeLine className="w-4 h-4" />
                 )}
               </button>
             </div>
@@ -151,7 +151,7 @@ export default function SettingPage() {
             disabled={isSaving}
             className="flex items-center gap-2 px-5 py-2.5 bg-accent-500 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-accent-500/25"
           >
-            <Key className="w-4 h-4" />
+            <RiKeyLine className="w-4 h-4" />
             Change Password
           </button>
         </div>
@@ -161,13 +161,15 @@ export default function SettingPage() {
       <div className="bg-dark-800/60 border border-dark-600/40 rounded-2xl p-6 space-y-3">
         <SectionTitle>About</SectionTitle>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-accent-500/20 border border-accent-500/30 flex items-center justify-center text-accent-400 font-bold text-lg shrink-0">
-            MQ
+          <div className="w-12 h-12 rounded-xl bg-accent-500/20 border border-accent-500/30 flex items-center justify-center overflow-hidden shrink-0">
+            <img src="/app.svg" alt="App" className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">ApiMQ</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              Base Project
+            </h3>
             <p className="text-xs text-dark-300 font-mono mt-0.5">
-              Lightweight API Message Queue
+              React + Go Starter Template
             </p>
           </div>
         </div>
