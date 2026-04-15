@@ -13,9 +13,11 @@ import LineChart from "@/components/LineChart";
 
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { getSocket } from "@/lib/socket";
+import { useLanguageStore } from "@/stores/languageStore";
 
 export default function DashboardPage() {
   const { stats, queues, fetchStats, setStats } = useDashboardStore();
+  const { language } = useLanguageStore();
 
   useEffect(() => {
     fetchStats();
@@ -94,45 +96,53 @@ export default function DashboardPage() {
     <div className="space-y-6 animate-fade-in">
       {/* Page header */}
       <div>
-        <h2 className="text-xl font-bold text-foreground">Dashboard</h2>
+        <h2 className="text-xl font-bold text-foreground">
+          {language({ id: "Dashboard", en: "Dashboard" })}
+        </h2>
         <p className="text-sm text-dark-300 mt-1">
-          Real-time overview of your system
+          {language({
+            id: "Ikhtisar sistem secara real-time",
+            en: "Real-time overview of your system",
+          })}
         </p>
       </div>
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         <StatCard
-          label="Total Queues"
+          label={language({ id: "Total Antrian", en: "Total Queues" })}
           value={0}
           icon={RiInboxLine}
           color="indigo"
         />
         <StatCard
-          label="Total Messages"
+          label={language({ id: "Total Pesan", en: "Total Messages" })}
           value={0}
           icon={RiPulseLine}
           color="green"
         />
         <StatCard
-          label="Completed"
+          label={language({ id: "Selesai", en: "Completed" })}
           value={0}
           icon={RiCheckboxCircleLine}
           color="cyan"
         />
-        <StatCard label="Pending" value={0} icon={RiTimeLine} color="yellow" />
-        <StatCard label="Timing" value={0} icon={RiTimerLine} color="indigo" />
-        <StatCard label="Failed" value={0} icon={RiAlertLine} color="red" />
+        <StatCard label={language({ id: "Tertunda", en: "Pending" })} value={0} icon={RiTimeLine} color="yellow" />
+        <StatCard label={language({ id: "Waktu", en: "Timing" })} value={0} icon={RiTimerLine} color="indigo" />
+        <StatCard label={language({ id: "Gagal", en: "Failed" })} value={0} icon={RiAlertLine} color="red" />
       </div>
 
       {/* Queue chart */}
       <div className="bg-dark-800/60 border border-dark-600/40 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-dark-600/40">
           <h3 className="text-sm font-semibold text-foreground">
-            Queue Incoming
+            {language({ id: "Antrian Masuk", en: "Queue Incoming" })}
           </h3>
           <p className="text-xs text-dark-400 mt-0.5 font-mono">
-            Live chart (updates every second) - 1 line per queue
+            {language({
+              id: "Grafik langsung (update setiap detik) - 1 garis per antrian",
+              en: "Live chart (updates every second) - 1 line per queue",
+            })}
           </p>
         </div>
         <div className="p-4">

@@ -15,6 +15,7 @@ import {
   RiCloseLine,
   RiSunLine,
   RiMoonLine,
+  RiTranslate2,
 } from "react-icons/ri";
 import Loading from "@/components/Loading";
 import version from "@/version";
@@ -39,7 +40,7 @@ interface AppLayoutProps {
 export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { language } = useLanguageStore();
+  const { language, languageCode, toggleLanguage } = useLanguageStore();
 
   const { isLoading, validateToken, logout } = useAuthStore();
   const {
@@ -203,10 +204,12 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
           <button
             onClick={handleLogout}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-dark-300 hover:text-neon-red hover:bg-neon-red/5 transition-all ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}`}
-            title="Sign out"
+            title={language({ id: "Keluar", en: "Sign out" })}
           >
             <RiLogoutBoxLine className="w-4.5 h-4.5 shrink-0" />
-            {(!effectiveCollapsed || isMobileOpen) && <span>Sign Out</span>}
+            {(!effectiveCollapsed || isMobileOpen) && (
+              <span>{language({ id: "Keluar", en: "Sign Out" })}</span>
+            )}
           </button>
         </div>
       </aside>
@@ -233,12 +236,27 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
 
           {/* Right side */}
           <div className="ml-auto flex items-center gap-3">
+            {/* Language toggle */}
+            <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-dark-300 hover:text-foreground hover:bg-dark-700/50 transition-all text-xs font-mono"
+              title={language({
+                id: "Ganti bahasa",
+                en: "Switch language",
+              })}
+            >
+              <RiTranslate2 className="w-3.5 h-3.5" />
+              <span className="uppercase">{languageCode}</span>
+            </button>
+
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-dark-300 hover:text-foreground hover:bg-dark-700/50 transition-all"
               title={
-                isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+                isDarkMode
+                  ? language({ id: "Mode terang", en: "Switch to light mode" })
+                  : language({ id: "Mode gelap", en: "Switch to dark mode" })
               }
             >
               {isDarkMode ? (
@@ -254,9 +272,9 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
                 window.open("/doc", "_blank", "noopener,noreferrer")
               }
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-dark-700/50 rounded-lg border border-dark-600/30 text-xs font-mono text-dark-300 hover:text-foreground hover:bg-dark-700/70 transition-all"
-              title="Open Docs"
+              title={language({ id: "Buka Dokumen", en: "Open Docs" })}
             >
-              Docs
+              {language({ id: "Dokumen", en: "Docs" })}
             </button>
           </div>
         </header>

@@ -1,23 +1,25 @@
 package auth
 
 import (
-	"crypto/md5"
 	"fmt"
 	"time"
 
 	"react-go/dto"
 	"react-go/environment"
-	"react-go/modules/setting"
+	"react-go/function"
+	model "react-go/modules/user/model"
 	"react-go/variable"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken() (string, error) {
+func GenerateToken(userID string, role string) (string, error) {
 	claims := jwt.MapClaims{
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
-		"iat": time.Now().Unix(),
+		"id":   userID,
+		"role": role,
+		"exp":  time.Now().Add(24 * time.Hour).Unix(),
+		"iat":  time.Now().Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(environment.GetJWTSecret())
@@ -41,6 +43,7 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 type LoginRequest struct {
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -50,23 +53,25 @@ func Login(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "Invalid request body", nil)
 	}
 
+	if req.Username == "" {
+		return dto.BadRequest(c, "Username is required", nil)
+	}
 	if req.Password == "" {
 		return dto.BadRequest(c, "Password is required", nil)
 	}
 
-	var s setting.Setting
-	if err := variable.Db.Where("key = ?", "auth_password").First(&s).Error; err != nil {
-		return dto.Unauthorized(c, "Invalid password (1)", nil)
+	// Find user by username
+	var user model.User
+	if err := variable.Db.Where("username = ?", req.Username).First(&user).Error; err != nil {
+		return dto.Unauthorized(c, "Invalid username or password", nil)
 	}
 
-	// compare MD5 hash
-	hash := fmt.Sprintf("%x", md5.Sum([]byte(req.Password)))
-	// fmt.Printf("Req Password: %s | Now Password: %s | Hash: %s\n", req.Password, s.Value, hash)
-	if hash != s.Value {
-		return dto.Unauthorized(c, "Invalid password (2)", nil)
+	// Verify password
+	if !function.ValidatePassword(req.Password, user.Password) {
+		return dto.Unauthorized(c, "Invalid username or password", nil)
 	}
 
-	token, err := GenerateToken()
+	token, err := GenerateToken(user.ID.String(), user.Role)
 	if err != nil {
 		return dto.InternalServerError(c, "Failed to generate token", nil)
 	}

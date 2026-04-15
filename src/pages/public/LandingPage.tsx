@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   HiOutlineCode,
@@ -10,48 +9,66 @@ import {
   HiOutlineGlobe,
   HiOutlineDatabase,
 } from "react-icons/hi";
-import version from "@/version";
+import { useLanguageStore } from "@/stores/languageStore";
 
 const features = [
   {
     icon: HiOutlineLightningBolt,
-    title: "Blazing Fast",
-    desc: "React 19 + Vite for instant HMR, Go compiled backend for peak performance.",
+    title: { id: "Sangat Cepat", en: "Blazing Fast" },
+    desc: {
+      id: "React 19 + Vite untuk HMR instan, Go backend untuk performa terbaik.",
+      en: "React 19 + Vite for instant HMR, Go compiled backend for peak performance.",
+    },
     color: "text-neon-green",
     bg: "bg-neon-green/10 border-neon-green/20",
   },
   {
     icon: HiOutlineTemplate,
-    title: "App Layout Ready",
-    desc: "Sidebar, top bar, responsive navigation, and dark/light mode built-in.",
+    title: { id: "Layout Siap Pakai", en: "App Layout Ready" },
+    desc: {
+      id: "Sidebar, top bar, navigasi responsif, dan mode gelap/terang bawaan.",
+      en: "Sidebar, top bar, responsive navigation, and dark/light mode built-in.",
+    },
     color: "text-accent-400",
     bg: "bg-accent-500/10 border-accent-500/20",
   },
   {
     icon: HiOutlineShieldCheck,
-    title: "Auth & Roles",
-    desc: "JWT authentication with role-based access control out of the box.",
+    title: { id: "Auth & Peran", en: "Auth & Roles" },
+    desc: {
+      id: "Autentikasi JWT dengan kontrol akses berbasis peran langsung dari kotak.",
+      en: "JWT authentication with role-based access control out of the box.",
+    },
     color: "text-neon-cyan",
     bg: "bg-neon-cyan/10 border-neon-cyan/20",
   },
   {
     icon: HiOutlineColorSwatch,
-    title: "Theme System",
-    desc: "CSS custom properties with TailwindCSS v4. Dark and light modes supported.",
+    title: { id: "Sistem Tema", en: "Theme System" },
+    desc: {
+      id: "CSS custom properties dengan TailwindCSS v4. Mode gelap dan terang didukung.",
+      en: "CSS custom properties with TailwindCSS v4. Dark and light modes supported.",
+    },
     color: "text-neon-yellow",
     bg: "bg-neon-yellow/10 border-neon-yellow/20",
   },
   {
     icon: HiOutlineGlobe,
-    title: "Multi-Language",
-    desc: "Built-in i18n store with toggle. Add new languages in minutes.",
+    title: { id: "Multi-Bahasa", en: "Multi-Language" },
+    desc: {
+      id: "Store i18n bawaan dengan toggle. Tambah bahasa baru dalam hitungan menit.",
+      en: "Built-in i18n store with toggle. Add new languages in minutes.",
+    },
     color: "text-accent-400",
     bg: "bg-accent-500/10 border-accent-500/20",
   },
   {
     icon: HiOutlineDatabase,
-    title: "Database Ready",
-    desc: "GORM + SQLite (or PostgreSQL/MySQL). Auto-migration on startup.",
+    title: { id: "Database Siap", en: "Database Ready" },
+    desc: {
+      id: "GORM + SQLite (atau PostgreSQL/MySQL). Auto-migrasi saat startup.",
+      en: "GORM + SQLite (or PostgreSQL/MySQL). Auto-migration on startup.",
+    },
     color: "text-neon-green",
     bg: "bg-neon-green/10 border-neon-green/20",
   },
@@ -70,56 +87,10 @@ const techStack = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const { language } = useLanguageStore();
 
   return (
-    <div className="min-h-screen bg-dark-900 text-foreground overflow-x-hidden">
-      {/* ─── Navbar ─────────────────────────────────────────────────── */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrollY > 20
-            ? "bg-dark-800/90 backdrop-blur-xl border-b border-dark-600/30 shadow-lg shadow-black/10"
-            : "bg-transparent"
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-accent-500/20 border border-accent-500/30 flex items-center justify-center">
-              <img src="/app.svg" alt="App" className="w-4 h-4" />
-            </div>
-            <span className="font-bold text-foreground tracking-tight">
-              React-Go
-            </span>
-            <span className="text-[10px] font-mono text-dark-400 ml-1">
-              v{version}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <a
-              href="https://github.com/jefripunza/react-go"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs font-mono text-dark-300 hover:text-foreground transition-colors"
-            >
-              <HiOutlineCode size={14} />
-              GitHub
-            </a>
-            <button
-              onClick={() => navigate("/login")}
-              className="px-4 py-2 text-sm font-semibold bg-accent-500 hover:bg-accent-600 text-white rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-accent-500/25 active:scale-[0.98]"
-            >
-              Login
-            </button>
-          </div>
-        </div>
-      </nav>
-
+    <>
       {/* ─── Hero ───────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-20 px-6">
         {/* Background glow effects */}
@@ -133,7 +104,10 @@ export default function LandingPage() {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-accent-500/10 border border-accent-500/20 rounded-full mb-8 animate-fade-in">
             <div className="w-2 h-2 rounded-full bg-neon-green animate-pulse-glow" />
             <span className="text-xs font-mono text-accent-400">
-              Open Source Starter Template
+              {language({
+                id: "Template Starter Open Source",
+                en: "Open Source Starter Template",
+              })}
             </span>
           </div>
 
@@ -142,7 +116,10 @@ export default function LandingPage() {
             className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
-            Build Full-Stack Apps
+            {language({
+              id: "Bangun Aplikasi Full-Stack",
+              en: "Build Full-Stack Apps",
+            })}
             <br />
             <span className="bg-linear-to-r from-accent-400 via-neon-cyan to-accent-500 bg-clip-text text-transparent">
               React + Go
@@ -154,9 +131,10 @@ export default function LandingPage() {
             className="mt-6 text-lg text-dark-300 max-w-2xl mx-auto leading-relaxed animate-fade-in"
             style={{ animationDelay: "0.2s" }}
           >
-            Clone this project and start coding. Pre-configured with
-            authentication, admin dashboard, dark/light theme, multi-language,
-            and production-ready Docker setup.
+            {language({
+              id: "Clone proyek ini dan mulai coding. Sudah dikonfigurasi dengan autentikasi, dasbor admin, tema gelap/terang, multi-bahasa, dan pengaturan Docker siap produksi.",
+              en: "Clone this project and start coding. Pre-configured with authentication, admin dashboard, dark/light theme, multi-language, and production-ready Docker setup.",
+            })}
           </p>
 
           {/* CTA buttons */}
@@ -168,7 +146,7 @@ export default function LandingPage() {
               onClick={() => navigate("/app/dashboard")}
               className="flex items-center gap-2 px-6 py-3 text-sm font-semibold bg-accent-500 hover:bg-accent-600 text-white rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-accent-500/25 active:scale-[0.98]"
             >
-              Go to Dashboard
+              {language({ id: "Ke Dashboard", en: "Go to Dashboard" })}
               <HiOutlineArrowRight size={16} />
             </button>
             <a
@@ -178,7 +156,7 @@ export default function LandingPage() {
               className="flex items-center gap-2 px-6 py-3 text-sm font-semibold border border-dark-600/50 text-dark-300 hover:text-foreground hover:border-dark-500/60 rounded-xl transition-all duration-200"
             >
               <HiOutlineCode size={16} />
-              View on GitHub
+              {language({ id: "Lihat di GitHub", en: "View on GitHub" })}
             </a>
           </div>
 
@@ -246,11 +224,16 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              Everything You Need
+              {language({
+                id: "Semua yang Anda Butuhkan",
+                en: "Everything You Need",
+              })}
             </h2>
             <p className="mt-3 text-dark-300 max-w-lg mx-auto">
-              Pre-configured and production-ready. Just clone, customize, and
-              deploy.
+              {language({
+                id: "Sudah dikonfigurasi dan siap produksi. Tinggal clone, kustomisasi, dan deploy.",
+                en: "Pre-configured and production-ready. Just clone, customize, and deploy.",
+              })}
             </p>
           </div>
 
@@ -259,7 +242,7 @@ export default function LandingPage() {
               const Icon = feat.icon;
               return (
                 <div
-                  key={feat.title}
+                  key={language(feat.title)}
                   className="bg-dark-800/60 border border-dark-600/40 rounded-2xl p-6 hover:border-dark-500/60 transition-all duration-300 group animate-fade-in"
                   style={{ animationDelay: `${i * 0.08}s` }}
                 >
@@ -269,10 +252,10 @@ export default function LandingPage() {
                     <Icon className={`w-5 h-5 ${feat.color}`} />
                   </div>
                   <h3 className="text-sm font-semibold text-foreground mb-2">
-                    {feat.title}
+                    {language(feat.title)}
                   </h3>
                   <p className="text-xs text-dark-300 leading-relaxed">
-                    {feat.desc}
+                    {language(feat.desc)}
                   </p>
                 </div>
               );
@@ -286,10 +269,16 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              Get Started in Seconds
+              {language({
+                id: "Mulai dalam Hitungan Detik",
+                en: "Get Started in Seconds",
+              })}
             </h2>
             <p className="mt-3 text-dark-300">
-              Three steps to your new project.
+              {language({
+                id: "Tiga langkah menuju proyek baru Anda.",
+                en: "Three steps to your new project.",
+              })}
             </p>
           </div>
 
@@ -307,7 +296,7 @@ export default function LandingPage() {
               },
               {
                 step: "03",
-                title: "Run",
+                title: language({ id: "Jalankan", en: "Run" }),
                 code: "bun run dev && go run main.go",
               },
             ].map((item) => (
@@ -334,18 +323,20 @@ export default function LandingPage() {
       <section className="py-24 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mb-4">
-            Ready to Build?
+            {language({ id: "Siap Membangun?", en: "Ready to Build?" })}
           </h2>
           <p className="text-dark-300 mb-8">
-            This template is open source and free to use. Star it on GitHub and
-            start shipping your next project.
+            {language({
+              id: "Template ini open source dan gratis digunakan. Beri bintang di GitHub dan mulai kirim proyek berikutnya.",
+              en: "This template is open source and free to use. Star it on GitHub and start shipping your next project.",
+            })}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={() => navigate("/app/dashboard")}
               className="flex items-center gap-2 px-6 py-3 text-sm font-semibold bg-accent-500 hover:bg-accent-600 text-white rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-accent-500/25"
             >
-              Open Dashboard
+              {language({ id: "Buka Dashboard", en: "Open Dashboard" })}
               <HiOutlineArrowRight size={16} />
             </button>
             <button
@@ -354,37 +345,11 @@ export default function LandingPage() {
               }
               className="flex items-center gap-2 px-6 py-3 text-sm font-semibold border border-dark-600/50 text-dark-300 hover:text-foreground hover:border-dark-500/60 rounded-xl transition-all"
             >
-              Read Docs
+              {language({ id: "Baca Dokumentasi", en: "Read Docs" })}
             </button>
           </div>
         </div>
       </section>
-
-      {/* ─── Footer ─────────────────────────────────────────────────── */}
-      <footer className="py-8 px-6 border-t border-dark-600/20">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-accent-500/20 border border-accent-500/30 flex items-center justify-center">
-              <img src="/app.svg" alt="App" className="w-3 h-3" />
-            </div>
-            <span className="text-xs font-mono text-dark-400">
-              React-Go v{version}
-            </span>
-          </div>
-          <div className="flex items-center gap-4 text-xs font-mono text-dark-400">
-            <a
-              href="https://github.com/jefripunza"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-accent-400 transition-colors"
-            >
-              @jefripunza
-            </a>
-            <span className="text-dark-600">·</span>
-            <span>Open Source</span>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   );
 }

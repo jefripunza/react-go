@@ -2,6 +2,8 @@ import { Outlet, useNavigate, useLocation } from "react-router";
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useThemeStore } from "@/stores/themeStore";
+import { useLanguageStore } from "@/stores/languageStore";
+import { RiTranslate2 } from "react-icons/ri";
 import Loading from "@/components/Loading";
 import { auth_to_app_navigate } from "@/constant";
 
@@ -11,6 +13,7 @@ export default function AuthLayout() {
 
   const { isLoading, validateToken } = useAuthStore();
   const { isDarkMode } = useThemeStore();
+  const { languageCode, toggleLanguage, language } = useLanguageStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,6 +46,16 @@ export default function AuthLayout() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-dark-900 overflow-hidden">
+      {/* Language toggle — top right */}
+      <button
+        onClick={toggleLanguage}
+        className="absolute top-5 right-5 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-dark-300 hover:text-foreground hover:bg-dark-700/50 transition-all text-xs font-mono"
+        title={language({ id: "Ganti bahasa", en: "Switch language" })}
+      >
+        <RiTranslate2 className="w-3.5 h-3.5" />
+        <span className="uppercase">{languageCode}</span>
+      </button>
+
       {/* Background grid pattern */}
       <div
         className="absolute inset-0 opacity-[0.03]"

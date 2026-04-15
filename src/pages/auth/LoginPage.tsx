@@ -5,12 +5,16 @@ import {
   RiEyeOffLine,
   RiTerminalLine,
   RiLockLine,
+  RiUserLine,
 } from "react-icons/ri";
 import { useNavigate } from "react-router";
+import { useLanguageStore } from "@/stores/languageStore";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { language } = useLanguageStore();
 
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,17 +27,23 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await login(password);
+      const response = await login(username, password);
       if (response.success) {
         navigate("/app/dashboard", { replace: true });
       } else {
-        setError(response.message || "Login failed");
+        setError(
+          response.message ||
+            language({ id: "Login gagal", en: "Login failed" }),
+        );
       }
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Connection failed. Check your server.";
+          : language({
+              id: "Koneksi gagal. Periksa server Anda.",
+              en: "Connection failed. Check your server.",
+            });
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -55,7 +65,7 @@ export default function LoginPage() {
             Base Project
           </h1>
           <p className="text-xs text-dark-300 font-mono">
-            Admin Dashboard
+            {language({ id: "Dasbor Admin", en: "Admin Dashboard" })}
           </p>
         </div>
       </div>
@@ -67,7 +77,10 @@ export default function LoginPage() {
           <div className="flex items-center gap-2 mb-6">
             <RiLockLine className="w-4 h-4 text-dark-300" />
             <span className="text-sm text-dark-300 font-mono">
-              authentication required
+              {language({
+                id: "autentikasi diperlukan",
+                en: "authentication required",
+              })}
             </span>
           </div>
 
@@ -78,17 +91,41 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-dark-200 mb-2">
+                {language({ id: "Nama pengguna", en: "Username" })}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={language({
+                    id: "Masukkan nama pengguna",
+                    en: "Enter username",
+                  })}
+                  className="w-full px-4 py-3 pl-11 bg-dark-900/60 border border-dark-500/50 rounded-xl text-foreground placeholder-dark-400 focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/30 transition-all font-mono text-sm"
+                  required
+                />
+                <RiUserLine className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
+              </div>
+            </div>
+
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-dark-200 mb-2">
-                Password
+                {language({ id: "Kata sandi", en: "Password" })}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
+                  placeholder={language({
+                    id: "Masukkan kata sandi",
+                    en: "Enter password",
+                  })}
                   className="w-full px-4 py-3 pr-12 bg-dark-900/60 border border-dark-500/50 rounded-xl text-foreground placeholder-dark-400 focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/30 transition-all font-mono text-sm"
                   required
                 />
@@ -115,12 +152,17 @@ export default function LoginPage() {
               {isLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Connecting...</span>
+                  <span>
+                    {language({
+                      id: "Menghubungkan...",
+                      en: "Connecting...",
+                    })}
+                  </span>
                 </>
               ) : (
                 <>
                   <RiTerminalLine className="w-4 h-4" />
-                  <span>Sign In</span>
+                  <span>{language({ id: "Masuk", en: "Sign In" })}</span>
                 </>
               )}
             </button>
@@ -129,7 +171,10 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="mt-6 pt-5 border-t border-dark-600/30">
             <p className="text-center text-xs text-dark-400 font-mono">
-              Secure Dashboard Access
+              {language({
+                id: "Akses Dasbor Aman",
+                en: "Secure Dashboard Access",
+              })}
             </p>
           </div>
         </div>
