@@ -18,7 +18,7 @@ read -p "HTML Description?                 : " htmlDescription
 echo "Start Process ..."
 
 # Remove git repository
-# rm -rf .git
+rm -rf .git
 
 # Install dependencies
 echo "Install dependencies ..."
