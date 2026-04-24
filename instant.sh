@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# this is example build new project
+
 bash initialize.sh <<EOF
-test-123
-Test 123 | Mini Detail
-Test Description
+navada-grosir
+Navada Grosir | Sistem Manajemen Gudang Terpadu
+Aplikasi manajemen gudang profesional (WMS) untuk mencatat, mengecek stok barang, mengontrol inventaris, dan memantau operasional Navada Grosir secara real-time.
 EOF
