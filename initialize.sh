@@ -1,7 +1,17 @@
 #!/bin/bash
 
 # Questions
-read -p "Project Code? [react-go]          : " projectCode
+while true; do
+  read -p "Project Code? [react-go]          : " projectCode
+  if [ -z "$projectCode" ]; then
+    break
+  fi
+  if [[ ! "$projectCode" =~ ^[a-z0-9-]+$ ]]; then
+    echo "⚠️  Error: Project Code harus berupa huruf kecil, angka, dan strip (-). Tidak boleh ada spasi atau karakter spesial. Contoh: react-go123"
+  else
+    break
+  fi
+done
 read -p "HTML Title? [title | mini-detail] : " htmlTitle
 read -p "HTML Description?                 : " htmlDescription
 
