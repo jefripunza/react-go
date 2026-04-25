@@ -40,15 +40,6 @@ const sidebarLinks: ISidebarLink[] = [
     roles: ["admin"],
     icon: HiOutlineUser,
   },
-
-  {
-    show_hr: true,
-    label: { id: "Pengaturan", en: "Settings" },
-    path: "settings",
-    element: <SettingsPage />,
-    roles: [],
-    icon: HiOutlineCog,
-  },
 ];
 
 export const routers = createBrowserRouter([
@@ -78,10 +69,16 @@ export const routers = createBrowserRouter([
       {
         path: "app",
         element: <AppLayout sidebarLinks={sidebarLinks} />,
-        children: sidebarLinks.map((link) => ({
-          path: link.path as string,
-          element: link.element,
-        })),
+        children: [
+          ...sidebarLinks.map((link) => ({
+            path: link.path as string,
+            element: link.element,
+          })),
+          {
+            path: "settings",
+            element: <SettingsPage />,
+          },
+        ],
       },
     ],
     errorElement: <ErrorBoundaryPage />,

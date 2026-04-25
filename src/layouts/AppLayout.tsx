@@ -8,7 +8,14 @@ import {
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
-import { RiLogoutBoxLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
+import {
+  RiLogoutBoxLine,
+  RiMenuLine,
+  RiCloseLine,
+  RiSettings4Line,
+  RiFileTextLine,
+  RiNotificationLine,
+} from "react-icons/ri";
 import Loading from "@/components/Loading";
 import version from "@/version";
 import { no_auth_navigate } from "@/constant";
@@ -181,11 +188,45 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="border-t border-dark-600/50 p-3 space-y-2 shrink-0">
+        <div className="border-t border-dark-600/50 p-3 space-y-1 shrink-0">
+          {/* Settings */}
+          <Link
+            to="/app/settings"
+            onClick={() => {
+              if (window.innerWidth < 1024) setMobileOpen(false);
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200
+              ${
+                location.pathname === "/app/settings"
+                  ? "bg-accent-500/15 text-accent-400 border border-accent-500/20"
+                  : "text-dark-300 hover:text-foreground hover:bg-dark-700/50 border border-transparent"
+              }
+              ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}
+            `}
+            title={language({ id: "Pengaturan", en: "Settings" })}
+          >
+            <RiSettings4Line className="w-4.5 h-4.5 shrink-0" />
+            {(!effectiveCollapsed || isMobileOpen) && (
+              <span>{language({ id: "Pengaturan", en: "Settings" })}</span>
+            )}
+          </Link>
+
+          {/* Docs */}
+          <button
+            onClick={() => window.open("/doc", "_blank", "noopener,noreferrer")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-dark-300 hover:text-foreground hover:bg-dark-700/50 transition-all border border-transparent ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}`}
+            title={language({ id: "Dokumen", en: "Documentation" })}
+          >
+            <RiFileTextLine className="w-4.5 h-4.5 shrink-0" />
+            {(!effectiveCollapsed || isMobileOpen) && (
+              <span>{language({ id: "Dokumen", en: "Documentation" })}</span>
+            )}
+          </button>
+
           {/* Logout */}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-dark-300 hover:text-neon-red hover:bg-neon-red/5 transition-all ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}`}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-dark-300 hover:text-neon-red hover:bg-neon-red/5 transition-all border border-transparent ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}`}
             title={language({ id: "Keluar", en: "Sign out" })}
           >
             <RiLogoutBoxLine className="w-4.5 h-4.5 shrink-0" />
@@ -220,15 +261,15 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
           <div className="ml-auto flex items-center gap-3">
             <ControlButton />
 
+            {/* Notification */}
             <button
-              type="button"
               onClick={() =>
                 window.open("/doc", "_blank", "noopener,noreferrer")
               }
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-dark-700/50 rounded-lg border border-dark-600/30 text-xs font-mono text-dark-300 hover:text-foreground hover:bg-dark-700/70 transition-all"
-              title={language({ id: "Buka Dokumen", en: "Open Docs" })}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-dark-300 hover:text-foreground hover:bg-dark-700/50 transition-all border border-transparent ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}`}
+              title={language({ id: "Notifikasi", en: "Notifications" })}
             >
-              {language({ id: "Dokumen", en: "Docs" })}
+              <RiNotificationLine className="w-4.5 h-4.5 shrink-0" />
             </button>
           </div>
         </header>
