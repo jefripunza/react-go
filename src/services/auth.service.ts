@@ -1,15 +1,15 @@
 import satellite from "@/lib/satellite";
 import type { Response } from "@/types/response";
+import type { User } from "@/types/user";
 
 export const authService = {
   login: async (username: string, password: string) => {
-    const response = await satellite.post<Response<{ token: string }>>(
-      "/api/auth/login",
-      {
-        username,
-        password,
-      },
-    );
+    const response = await satellite.post<
+      Response<{ token: string; user: User }>
+    >("/api/auth/login", {
+      username,
+      password,
+    });
     return response.data;
   },
   validate: async (on?: string) => {

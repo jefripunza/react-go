@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import { authService } from "@/services/auth.service";
 import type { AxiosError } from "axios";
+import type { User } from "@/types/user";
 
 interface AuthState {
+  user: User | null;
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -16,6 +18,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
+  user: null,
   token: localStorage.getItem("token") || null,
   isLoading: true,
   isAuthenticated: false,
@@ -24,8 +27,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       const response = await authService.login(username, password);
       if (response.data?.token) {
         const token = response.data.token;
+        const user = response.data.user;
         localStorage.setItem("token", token);
-        set({ token, isAuthenticated: true });
+        set({ token, user, isAuthenticated: true });
         return { success: true, message: null };
       } else {
         return { success: false, message: response.message || "Login failed" };

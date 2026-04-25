@@ -1,10 +1,11 @@
+import { useEffect } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { RouterProvider } from "react-router/dom";
 
-import { routers } from "@/routers";
 import PWABadge from "@/PWABadge";
+
+import { routers } from "@/routers";
 import { use_offline_app } from "@/constant";
-import { useEffect } from "react";
 import { useThemeStore } from "@/stores/themeStore";
 
 export default function App() {

@@ -75,14 +75,42 @@ const features = [
 ];
 
 const techStack = [
-  { label: "React 19", color: "text-neon-cyan" },
-  { label: "Vite", color: "text-neon-yellow" },
-  { label: "TailwindCSS v4", color: "text-accent-400" },
-  { label: "Go / Fiber", color: "text-neon-green" },
-  { label: "Zustand", color: "text-neon-cyan" },
-  { label: "GORM", color: "text-neon-yellow" },
-  { label: "Socket.IO", color: "text-accent-400" },
-  { label: "Docker", color: "text-neon-green" },
+  { label: "React 19", color: "text-neon-cyan", link: "https://react.dev/" },
+  {
+    label: "VitePWA",
+    color: "text-neon-yellow",
+    link: "https://vite-pwa-org.netlify.app/",
+  },
+  {
+    label: "TailwindCSS v4",
+    color: "text-accent-400",
+    link: "https://tailwindcss.com/",
+  },
+  {
+    label: "Go/Fiber v2",
+    color: "text-neon-green",
+    link: "https://gofiber.io/",
+  },
+  {
+    label: "Zustand",
+    color: "text-neon-cyan",
+    link: "https://zustand-demo.pmnd.rs/",
+  },
+  {
+    label: "GORM",
+    color: "text-neon-yellow",
+    link: "https://gorm.io/",
+  },
+  {
+    label: "Socket.IO",
+    color: "text-accent-400",
+    link: "https://socket.io/",
+  },
+  {
+    label: "Docker",
+    color: "text-neon-green",
+    link: "https://www.docker.com/",
+  },
 ];
 
 export default function LandingPage() {
@@ -179,20 +207,21 @@ export default function LandingPage() {
               <pre className="px-5 py-4 text-xs font-mono text-dark-200 leading-relaxed overflow-x-auto">
                 <span className="text-neon-green">$</span>{" "}
                 <span className="text-dark-100">
-                  git clone https://github.com/jefripunza/react-go.git
+                  git clone https://github.com/jefripunza/react-go.git .
                 </span>
                 {"\n"}
                 <span className="text-neon-green">$</span>{" "}
-                <span className="text-dark-100">cd react-go</span>
+                <span className="text-dark-100">bash initialize.sh</span>
                 {"\n"}
-                <span className="text-neon-green">$</span>{" "}
-                <span className="text-dark-100">bun install</span>
+                <span className="text-neon-green">$(terminal-1)</span>{" "}
+                <span className="text-dark-100">yarn dev</span>
                 {"\n"}
-                <span className="text-neon-green">$</span>{" "}
-                <span className="text-dark-100">bun run dev</span>
+                <span className="text-neon-green">$(terminal-2)</span>{" "}
+                <span className="text-dark-100">air</span>
                 {"\n\n"}
                 <span className="text-dark-400">
-                  {"  "}VITE v6.x ready in 200ms
+                  {"  "}VITE v6.x{" "}
+                  {language({ id: "siap dalam", en: "ready in" })} 200ms
                 </span>
                 {"\n"}
                 <span className="text-dark-400">{"  "}➜ Local: </span>
@@ -208,12 +237,15 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             {techStack.map((tech) => (
-              <span
+              <a
                 key={tech.label}
+                href={tech.link}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`text-xs font-mono ${tech.color} opacity-70 hover:opacity-100 transition-opacity`}
               >
                 {tech.label}
-              </span>
+              </a>
             ))}
           </div>
         </div>
@@ -287,17 +319,17 @@ export default function LandingPage() {
               {
                 step: "01",
                 title: "Clone",
-                code: "git clone https://github.com/jefripunza/react-go.git",
+                code: "git clone https://github.com/jefripunza/react-go.git .",
               },
               {
                 step: "02",
-                title: "Install",
-                code: "bun install && go mod download",
+                title: "Setup",
+                code: "bash initialize.sh",
               },
               {
                 step: "03",
                 title: language({ id: "Jalankan", en: "Run" }),
-                code: "bun run dev && go run main.go",
+                code: "yarn dev && air",
               },
             ].map((item) => (
               <div
