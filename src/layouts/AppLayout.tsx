@@ -8,15 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
-import { useThemeStore } from "@/stores/themeStore";
-import {
-  RiLogoutBoxLine,
-  RiMenuLine,
-  RiCloseLine,
-  RiSunLine,
-  RiMoonLine,
-  RiTranslate2,
-} from "react-icons/ri";
+import { RiLogoutBoxLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import Loading from "@/components/Loading";
 import version from "@/version";
 import { no_auth_navigate } from "@/constant";
@@ -42,7 +34,7 @@ interface AppLayoutProps {
 export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { language, languageCode, toggleLanguage } = useLanguageStore();
+  const { language } = useLanguageStore();
 
   const { isLoading, validateToken, logout } = useAuthStore();
   const {
@@ -52,7 +44,6 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
     setCollapsed,
     setMobileOpen,
   } = useSidebarStore();
-  const { isDarkMode, toggleTheme } = useThemeStore();
 
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -80,15 +71,6 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
   }, [setCollapsed]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDarkMode) {
-      root.removeAttribute("data-theme");
-    } else {
-      root.setAttribute("data-theme", "light");
-    }
-  }, [isDarkMode]);
 
   const handleLogout = () => {
     logout();

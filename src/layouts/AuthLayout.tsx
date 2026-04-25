@@ -1,9 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { useThemeStore } from "@/stores/themeStore";
-import { useLanguageStore } from "@/stores/languageStore";
-import { RiTranslate2 } from "react-icons/ri";
 import Loading from "@/components/Loading";
 import { auth_to_app_navigate } from "@/constant";
 import ControlButton from "@/components/ControlButton";
@@ -13,8 +10,6 @@ export default function AuthLayout() {
   const location = useLocation();
 
   const { isLoading, validateToken } = useAuthStore();
-  const { isDarkMode } = useThemeStore();
-  const { languageCode, toggleLanguage, language } = useLanguageStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -31,15 +26,6 @@ export default function AuthLayout() {
     };
     checkAuth();
   }, [validateToken, navigate, location.pathname]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDarkMode) {
-      root.removeAttribute("data-theme");
-    } else {
-      root.setAttribute("data-theme", "light");
-    }
-  }, [isDarkMode]);
 
   if (isLoading) {
     return <Loading />;

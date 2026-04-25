@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from "react-router";
 import { HiOutlineCode } from "react-icons/hi";
 import { RiTranslate2 } from "react-icons/ri";
 import { useLanguageStore } from "@/stores/languageStore";
+import { useThemeStore } from "@/stores/themeStore";
 import version from "@/version";
 import AppIconSvg from "@/assets/react_go.svg";
 import ControlButton from "@/components/ControlButton";
@@ -10,7 +11,7 @@ import ControlButton from "@/components/ControlButton";
 export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { languageCode, toggleLanguage, language } = useLanguageStore();
+  const { language } = useLanguageStore();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
