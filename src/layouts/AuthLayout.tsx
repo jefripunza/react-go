@@ -48,7 +48,7 @@ export default function AuthLayout() {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-dark-900 overflow-hidden">
       {/* top right */}
-      <div className="absolute top-5 right-5 z-20">
+      <div className="absolute top-5 right-5 z-20 flex items-center gap-3">
         <ControlButton />
       </div>
 
