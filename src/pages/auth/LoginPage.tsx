@@ -125,9 +125,10 @@ export default function LoginPage() {
                     id: "Masukkan kata sandi",
                     en: "Enter password",
                   })}
-                  className="w-full px-4 py-3 pr-12 bg-dark-900/60 border border-dark-500/50 rounded-xl text-foreground placeholder-dark-400 focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/30 transition-all font-mono text-sm"
+                  className="w-full px-4 py-3 pl-11 pr-12 bg-dark-900/60 border border-dark-500/50 rounded-xl text-foreground placeholder-dark-400 focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/30 transition-all font-mono text-sm"
                   required
                 />
+                <RiLockLine className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
