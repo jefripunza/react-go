@@ -24,6 +24,7 @@ import type { LanguageCode } from "@/stores/languageStore";
 import type { UserRole } from "@/types/user";
 import { useLanguageStore } from "@/stores/languageStore";
 import AppIconSvg from "@/assets/react_go.svg";
+import ControlButton from "@/components/ControlButton";
 
 export interface ISidebarLink extends Partial<IndexRouteObject> {
   show_hr?: boolean;
@@ -235,35 +236,7 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
 
           {/* Right side */}
           <div className="ml-auto flex items-center gap-3">
-            {/* Language toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-dark-300 hover:text-foreground hover:bg-dark-700/50 transition-all text-xs font-mono"
-              title={language({
-                id: "Ganti bahasa",
-                en: "Switch language",
-              })}
-            >
-              <RiTranslate2 className="w-3.5 h-3.5" />
-              <span className="uppercase">{languageCode}</span>
-            </button>
-
-            {/* Dark mode toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg text-dark-300 hover:text-foreground hover:bg-dark-700/50 transition-all"
-              title={
-                isDarkMode
-                  ? language({ id: "Mode terang", en: "Switch to light mode" })
-                  : language({ id: "Mode gelap", en: "Switch to dark mode" })
-              }
-            >
-              {isDarkMode ? (
-                <RiSunLine className="w-4 h-4" />
-              ) : (
-                <RiMoonLine className="w-4 h-4" />
-              )}
-            </button>
+            <ControlButton />
 
             <button
               type="button"

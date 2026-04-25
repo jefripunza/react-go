@@ -5,6 +5,7 @@ import { RiTranslate2 } from "react-icons/ri";
 import { useLanguageStore } from "@/stores/languageStore";
 import version from "@/version";
 import AppIconSvg from "@/assets/react_go.svg";
+import ControlButton from "@/components/ControlButton";
 
 export default function MainLayout() {
   const navigate = useNavigate();
@@ -53,18 +54,7 @@ export default function MainLayout() {
               GitHub
             </a>
 
-            {/* Language toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono text-dark-300 hover:text-foreground hover:bg-dark-700/50 rounded-lg transition-all"
-              title={language({
-                id: "Ganti bahasa",
-                en: "Switch language",
-              })}
-            >
-              <RiTranslate2 className="w-3.5 h-3.5" />
-              <span className="uppercase">{languageCode}</span>
-            </button>
+            <ControlButton />
 
             <button
               onClick={() => navigate("/login")}

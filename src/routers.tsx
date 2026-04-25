@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { HiOutlineCog, HiOutlineHome, HiOutlineUser } from "react-icons/hi";
 
 // Layouts
-import MainLayout from "@/layouts/MainLayout";
+import PublicLayout from "@/layouts/PublicLayout";
 import AuthLayout from "@/layouts/AuthLayout";
 import AppLayout, { type ISidebarLink } from "@/layouts/AppLayout";
 
@@ -57,7 +57,7 @@ export const routers = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <MainLayout />,
+        element: <PublicLayout />,
         children: [
           {
             index: true,
