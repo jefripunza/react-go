@@ -1,23 +1,19 @@
 package middlewares
 
 import (
-	"context"
-	"fmt"
 	"strings"
-	"time"
 
 	"react-go/dto"
-	"react-go/environment"
+	"react-go/function"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type claimsContextKey string
 
 const ClaimsContextKey claimsContextKey = "claims"
 
-func validateBearerToken(authHeader string) (jwt.MapClaims, string) {
+func validateBearerToken(authHeader string) (*function.JwtClaims, string) {
 	if authHeader == "" {
 		return nil, "Missing authorization header"
 	}
@@ -26,29 +22,11 @@ func validateBearerToken(authHeader string) (jwt.MapClaims, string) {
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
 		return nil, "Invalid authorization format"
 	}
+	token := parts[1]
 
-	tok, err := jwt.Parse(parts[1], func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-		}
-		return environment.GetJWTSecret(), nil
-	})
-	if err != nil || tok == nil || !tok.Valid {
+	claims, err := function.JwtValidateToken(token)
+	if err != nil {
 		return nil, "Invalid or expired token"
-	}
-
-	claims, ok := tok.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, "Invalid token payload"
-	}
-
-	now := time.Now().Unix()
-	expiredAt, ok := claims["exp"].(float64)
-	if !ok {
-		return nil, "Invalid token payload"
-	}
-	if expiredAt < float64(now) {
-		return nil, "Token expired"
 	}
 
 	return claims, ""
@@ -59,7 +37,6 @@ func UseToken(c *fiber.Ctx) error {
 	if errMsg != "" {
 		return dto.Unauthorized(c, errMsg, nil)
 	}
-	ctx := context.WithValue(c.UserContext(), ClaimsContextKey, claims)
-	c.SetUserContext(ctx)
+	c.Locals(string(ClaimsContextKey), claims)
 	return c.Next()
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"log"
 	"mime"
@@ -19,7 +20,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 //go:embed dist/*
@@ -50,8 +50,8 @@ func main() {
 	socket.Init(io)
 
 	app := fiber.New(fiber.Config{
-		AppName:       "ApiMQ",
-		ServerHeader:  "ApiMQ",
+		AppName:       variable.ServerName,
+		ServerHeader:  variable.ServerName,
 		Prefork:       false,
 		StrictRouting: true,
 		CaseSensitive: true,
@@ -61,7 +61,18 @@ func main() {
 
 	app.Use(cors.New())
 	app.Use(helmet.New())
-	app.Use(recover.New())
+	app.Use(func(c *fiber.Ctx) error {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Panic recovered: %v", r)
+				c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"status": "error",
+					"error":  fmt.Sprintf("%v", r),
+				})
+			}
+		}()
+		return c.Next()
+	})
 
 	// Socket.IO (note: with StrictRouting enabled, we must handle both /socket.io and /socket.io/)
 	app.Use("/socket.io", io.FiberMiddleware)
