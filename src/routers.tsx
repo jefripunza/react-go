@@ -1,5 +1,11 @@
 import { createBrowserRouter } from "react-router";
-import { HiOutlineCog, HiOutlineHome, HiOutlineUser } from "react-icons/hi";
+import {
+  HiOutlineCog,
+  HiOutlineHome,
+  HiOutlineUser,
+  HiOutlineShieldCheck,
+  HiOutlineDatabase,
+} from "react-icons/hi";
 
 // Layouts
 import PublicLayout from "@/layouts/PublicLayout";
@@ -15,6 +21,8 @@ import LoginPage from "@/pages/auth/LoginPage";
 // App: Pages
 import DashboardPage from "@/pages/app/DashboardPage";
 import UsersPage from "@/pages/app/UsersPage";
+import RolesPage from "@/pages/app/RolesPage";
+import MasterDataPage from "@/pages/app/MasterDataPage";
 import SettingsPage from "@/pages/app/SettingPage";
 import NotificationsPage from "@/pages/app/NotificationsPage";
 
@@ -38,8 +46,24 @@ const sidebarLinks: ISidebarLink[] = [
     label: { id: "Pengguna", en: "Users" },
     path: "users",
     element: <UsersPage />,
-    roles: ["admin"],
+    roles: ["su"],
     icon: HiOutlineUser,
+  },
+
+  {
+    label: { id: "Peran", en: "Roles" },
+    path: "roles",
+    element: <RolesPage />,
+    roles: ["su"],
+    icon: HiOutlineShieldCheck,
+  },
+
+  {
+    label: { id: "Data Master", en: "Master Data" },
+    path: "master-data",
+    element: <MasterDataPage />,
+    roles: ["su"],
+    icon: HiOutlineDatabase,
   },
 ];
 

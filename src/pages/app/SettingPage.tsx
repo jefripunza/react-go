@@ -1,13 +1,25 @@
-import { useState } from "react";
-import { RiKeyLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
+import { useEffect, useState } from "react";
+import {
+  RiKeyLine,
+  RiEyeLine,
+  RiEyeOffLine,
+  RiSettings3Line,
+} from "react-icons/ri";
 import SectionTitle from "@/components/SectionTitle";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Switch } from "@/components/ui/Switch";
 import { settingService } from "@/services/setting.service";
+import { useAuthStore } from "@/stores/authStore";
+import { useLanguageStore } from "@/stores/languageStore";
 import AppIconSvg from "@/assets/react_go.svg";
 
 interface SettingPageProps {}
 export default function SettingPage({}: SettingPageProps) {
+  const { user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const isSu = user?.role === "su";
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -18,12 +30,48 @@ export default function SettingPage({}: SettingPageProps) {
   const [saveType, setSaveType] = useState<"success" | "error">("success");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Maintenance state
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [isTogglingMaintenance, setIsTogglingMaintenance] = useState(false);
+
+  useEffect(() => {
+    if (isSu) {
+      settingService.getAll().then((settings) => {
+        setMaintenanceMode(settings.maintenance_mode === "true");
+      });
+    }
+  }, [isSu]);
+
+  const handleToggleMaintenance = async () => {
+    setIsTogglingMaintenance(true);
+    try {
+      const result = await settingService.toggleMaintenance();
+      setMaintenanceMode(result.data.maintenance_mode);
+    } catch {
+      setSaveType("error");
+      setSaveMsg(
+        language({
+          id: "Gagal mengubah mode maintenance",
+          en: "Failed to toggle maintenance mode",
+        }),
+      );
+      setTimeout(() => setSaveMsg(""), 3000);
+    } finally {
+      setIsTogglingMaintenance(false);
+    }
+  };
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSaving) return;
     if (newPassword !== confirmPassword) {
       setSaveType("error");
-      setSaveMsg("Passwords do not match.");
+      setSaveMsg(
+        language({
+          id: "Password tidak sama.",
+          en: "Passwords do not match.",
+        }),
+      );
       setTimeout(() => setSaveMsg(""), 3000);
       return;
     }
@@ -35,14 +83,24 @@ export default function SettingPage({}: SettingPageProps) {
         newPassword,
       );
       setSaveType("success");
-      setSaveMsg(res.message || "Password changed successfully.");
+      setSaveMsg(
+        res.message ||
+          language({
+            id: "Password berhasil diubah.",
+            en: "Password changed successfully.",
+          }),
+      );
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Failed to change password.";
+          ?.message ??
+        language({
+          id: "Gagal mengubah password.",
+          en: "Failed to change password.",
+        });
       setSaveType("error");
       setSaveMsg(msg);
     } finally {
@@ -55,9 +113,14 @@ export default function SettingPage({}: SettingPageProps) {
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold text-foreground">Setting</h2>
+        <h2 className="text-xl font-bold text-foreground">
+          {language({ id: "Pengaturan", en: "Setting" })}
+        </h2>
         <p className="text-sm text-dark-300 mt-1">
-          Manage your account and configuration
+          {language({
+            id: "Kelola akun dan konfigurasi Anda",
+            en: "Manage your account and configuration",
+          })}
         </p>
       </div>
 
@@ -74,26 +137,82 @@ export default function SettingPage({}: SettingPageProps) {
         </div>
       )}
 
+      {/* Maintenance Mode — su only */}
+      {isSu && (
+        <div className="bg-dark-800/60 border border-dark-600/40 rounded-2xl p-6 space-y-4">
+          <SectionTitle>
+            {language({
+              id: "Mode Pemeliharaan",
+              en: "Maintenance Mode",
+            })}
+          </SectionTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-neon-yellow/10 border border-neon-yellow/20 flex items-center justify-center">
+                <RiSettings3Line className="w-5 h-5 text-neon-yellow" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {language({
+                    id: "Aktifkan Mode Pemeliharaan",
+                    en: "Enable Maintenance Mode",
+                  })}
+                </p>
+                <p className="text-xs text-dark-400 font-mono mt-0.5">
+                  {language({
+                    id: "Saat aktif, hanya SU yang dapat mengakses sistem",
+                    en: "When active, only SU users can access the system",
+                  })}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={maintenanceMode}
+              onCheckedChange={handleToggleMaintenance}
+              disabled={isTogglingMaintenance}
+            />
+          </div>
+          {maintenanceMode && (
+            <div className="px-4 py-3 rounded-xl text-sm font-mono bg-neon-yellow/10 border border-neon-yellow/20 text-neon-yellow">
+              {language({
+                id: "⚠️ Sistem sedang dalam mode pemeliharaan. Pengguna biasa tidak dapat mengakses.",
+                en: "⚠️ System is in maintenance mode. Regular users cannot access.",
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Change password */}
       <form
         onSubmit={handleChangePassword}
         className="bg-dark-800/60 border border-dark-600/40 rounded-2xl p-6 space-y-4"
       >
-        <SectionTitle>Change Password</SectionTitle>
+        <SectionTitle>
+          {language({ id: "Ubah Password", en: "Change Password" })}
+        </SectionTitle>
         <div className="flex items-center gap-2 mb-2">
           <RiKeyLine className="w-4 h-4 text-dark-400" />
           <p className="text-xs text-dark-400 font-mono">
-            Update your account password
+            {language({
+              id: "Perbarui password akun Anda",
+              en: "Update your account password",
+            })}
           </p>
         </div>
         <div>
-          <Label required>Current password</Label>
+          <Label required>
+            {language({ id: "Password saat ini", en: "Current password" })}
+          </Label>
           <div className="relative">
             <Input
               type={showCurrent ? "text" : "password"}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Current password"
+              placeholder={language({
+                id: "Password saat ini",
+                en: "Current password",
+              })}
               required
               disabled={isSaving}
             />
@@ -112,13 +231,18 @@ export default function SettingPage({}: SettingPageProps) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <Label required>New password</Label>
+            <Label required>
+              {language({ id: "Password baru", en: "New password" })}
+            </Label>
             <div className="relative">
               <Input
                 type={showNew ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New password"
+                placeholder={language({
+                  id: "Password baru",
+                  en: "New password",
+                })}
                 required
                 disabled={isSaving}
               />
@@ -136,12 +260,20 @@ export default function SettingPage({}: SettingPageProps) {
             </div>
           </div>
           <div>
-            <Label required>Confirm password</Label>
+            <Label required>
+              {language({
+                id: "Konfirmasi password",
+                en: "Confirm password",
+              })}
+            </Label>
             <Input
               type={showNew ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm password"
+              placeholder={language({
+                id: "Konfirmasi password",
+                en: "Confirm password",
+              })}
               required
               disabled={isSaving}
             />
@@ -154,14 +286,16 @@ export default function SettingPage({}: SettingPageProps) {
             className="flex items-center gap-2 px-5 py-2.5 bg-accent-500 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-accent-500/25"
           >
             <RiKeyLine className="w-4 h-4" />
-            Change Password
+            {language({ id: "Ubah Password", en: "Change Password" })}
           </button>
         </div>
       </form>
 
       {/* Developer Credit */}
       <div className="bg-dark-800/60 border border-dark-600/40 rounded-2xl p-6 space-y-3">
-        <SectionTitle>About</SectionTitle>
+        <SectionTitle>
+          {language({ id: "Tentang", en: "About" })}
+        </SectionTitle>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-accent-500/20 border border-accent-500/30 flex items-center justify-center overflow-hidden shrink-0">
             <img src={AppIconSvg} alt="App" className="w-6 h-6" />

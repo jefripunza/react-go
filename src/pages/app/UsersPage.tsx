@@ -153,7 +153,7 @@ export default function UsersPage({}: UsersPageProps) {
             >
               <Badge
                 variant={
-                  user.role?.toLowerCase() === "admin" ? "default" : "secondary"
+                  user.role?.toLowerCase() === "su" ? "default" : "secondary"
                 }
               >
                 {user.role?.toUpperCase()}

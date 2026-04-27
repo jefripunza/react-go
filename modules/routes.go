@@ -6,7 +6,9 @@ import (
 	"react-go/modules/auth"
 	"react-go/modules/dashboard"
 	"react-go/modules/example"
+	"react-go/modules/masterdata"
 	"react-go/modules/notification"
+	"react-go/modules/role"
 	"react-go/modules/setting"
 	"react-go/modules/user"
 	"react-go/modules/whitelist"
@@ -25,6 +27,12 @@ func SetupRoutes(app *fiber.App, api fiber.Router) {
 	// User
 	user.ProtectedRoute(api.Group("/user", middlewares.UseToken))
 	user.ManagementRoute(api.Group("/user", middlewares.UseToken))
+
+	// Role
+	role.ProtectedRoute(api.Group("/role", middlewares.UseToken))
+
+	// Master Data
+	masterdata.ProtectedRoute(api.Group("/master-data", middlewares.UseToken))
 
 	// Notification
 	notification.ProtectedRoute(api.Group("/notification", middlewares.UseToken))

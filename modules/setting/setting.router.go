@@ -7,4 +7,5 @@ import (
 func ProtectedRoute(r fiber.Router) {
 	r.Get("/all", All)
 	r.Put("/set", Set)
+	r.Post("/toggle-maintenance", ToggleMaintenance)
 }

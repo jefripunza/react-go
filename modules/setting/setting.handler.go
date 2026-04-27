@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"react-go/dto"
+	"react-go/function"
 	model "react-go/modules/setting/model"
 	"react-go/variable"
 	"strings"
@@ -113,4 +114,30 @@ func Set(c *fiber.Ctx) error {
 	}
 
 	return dto.OK(c, "Setting updated successfully!", nil)
+}
+
+func ToggleMaintenance(c *fiber.Ctx) error {
+	// Only su can toggle maintenance
+	claims, ok := c.Locals("claims").(*function.JwtClaims)
+	if !ok || claims.Role != "su" {
+		return dto.Forbidden(c, "Only super users can toggle maintenance mode", nil)
+	}
+
+	var s model.Setting
+	if err := variable.Db.Where("key = ?", "maintenance_mode").First(&s).Error; err != nil {
+		// Create if not exists
+		s = model.Setting{Key: "maintenance_mode", Value: "false"}
+		variable.Db.Create(&s)
+	}
+
+	if s.Value == "true" {
+		s.Value = "false"
+	} else {
+		s.Value = "true"
+	}
+	variable.Db.Save(&s)
+
+	return dto.OK(c, "Maintenance mode updated", fiber.Map{
+		"maintenance_mode": s.Value == "true",
+	})
 }

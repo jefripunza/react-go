@@ -6,7 +6,9 @@ import (
 	"react-go/dto"
 	"react-go/function"
 	"react-go/function/hash"
+	notification "react-go/modules/notification/model"
 	model "react-go/modules/user/model"
+	"react-go/socket"
 	"react-go/variable"
 	"strings"
 
@@ -147,6 +149,13 @@ func Edit(on string) func(c *fiber.Ctx) error {
 			return dto.InternalServerError(c, "Failed to fetch updated user", nil)
 		}
 
+		// Send notification to edited user
+		socket.SendNotification(id.String(), notification.Notification{
+			Type:    notification.NotificationTypeInfo,
+			Title:   "Your profile was updated",
+			Message: "An administrator has updated your profile information.",
+		})
+
 		return dto.OK(c, "Success update user", fiber.Map{
 			"user": existing.Map(),
 		})
@@ -190,6 +199,13 @@ func ChangePassword(on string) func(c *fiber.Ctx) error {
 			return dto.InternalServerError(c, "Failed to fetch updated user", nil)
 		}
 
+		// Send notification to user about password change
+		socket.SendNotification(id.String(), notification.Notification{
+			Type:    notification.NotificationTypeWarning,
+			Title:   "Your password was changed",
+			Message: "An administrator has changed your account password.",
+		})
+
 		return dto.OK(c, "Success update user", fiber.Map{
 			"user": existing.Map(),
 		})
@@ -227,6 +243,13 @@ func RoleSwitch(c *fiber.Ctx) error {
 		Error; err != nil {
 		return dto.InternalServerError(c, "Failed to fetch updated user", nil)
 	}
+
+	// Send notification to user about role change
+	socket.SendNotification(id.String(), notification.Notification{
+		Type:    notification.NotificationTypeSystem,
+		Title:   "Your role has been changed",
+		Message: "An administrator has changed your role to " + newRole + ".",
+	})
 
 	return dto.OK(c, "Success switch role", fiber.Map{
 		"user": existing.Map(),

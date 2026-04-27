@@ -26,10 +26,10 @@ func (Setting) Seed(db *gorm.DB) {
 
 	if count == 0 {
 		stats := []Setting{
-			// {
-			// 	Key:   "auth_password",
-			// 	Value: fmt.Sprintf("%x", md5.Sum([]byte("admin"))),
-			// },
+			{
+				Key:   "maintenance_mode",
+				Value: "false",
+			},
 		}
 
 		for _, s := range stats {
