@@ -10,6 +10,8 @@ import {
   HiOutlineDatabase,
 } from "react-icons/hi";
 import { useLanguageStore } from "@/stores/languageStore";
+import { Fragment } from "react/jsx-runtime";
+import { SiNodedotjs, SiBun, SiGo } from "react-icons/si";
 
 const features = [
   {
@@ -118,7 +120,7 @@ export default function LandingPage() {
   const { language } = useLanguageStore();
 
   return (
-    <>
+    <Fragment>
       {/* ─── Hero ───────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-20 px-6">
         {/* Background glow effects */}
@@ -295,6 +297,42 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      {/* ─── Minimal Requirement ────────────────────────────────────── */}
+      <section className="py-16 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-xl font-semibold text-foreground mb-8">
+            {language({
+              id: "Persyaratan Minimum",
+              en: "Minimum Requirements",
+            })}
+          </h2>
+          <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-16">
+            <div className="flex flex-col items-center gap-3">
+              <SiNodedotjs className="w-10 h-10 text-[#339933] drop-shadow-md hover:scale-110 transition-transform" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Node.js</p>
+                <p className="text-xs text-dark-300 font-mono mt-1">
+                  v20.20.2+
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <SiBun className="w-10 h-10 text-[#fbf0df] drop-shadow-md hover:scale-110 transition-transform" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Bun</p>
+                <p className="text-xs text-dark-300 font-mono mt-1">v1.3.6+</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <SiGo className="w-10 h-10 text-[#00ADD8] drop-shadow-md hover:scale-110 transition-transform" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Go</p>
+                <p className="text-xs text-dark-300 font-mono mt-1">v1.25.6+</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ─── Quick Start ────────────────────────────────────────────── */}
       <section className="py-24 px-6 bg-dark-800/30 border-y border-dark-600/20">
@@ -382,6 +420,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-    </>
+    </Fragment>
   );
 }
