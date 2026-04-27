@@ -91,7 +91,6 @@ export default function UsersPage() {
     }
   };
 
-  const myEmail = "jefripunza@gmail.com";
   const columns = useMemo<PaginationColumn<User>[]>(
     () => [
       {
@@ -99,11 +98,6 @@ export default function UsersPage() {
         strict: true,
         align: "right",
         render: (user) => {
-          const isNotJefripunza = !user.email.includes(myEmail);
-          if (!isNotJefripunza) {
-            return null;
-          }
-
           return (
             <div className="flex items-center justify-end gap-1">
               <Button
@@ -126,42 +120,15 @@ export default function UsersPage() {
         },
       },
       {
-        header: language({ id: "Pengguna", en: "User" }),
-        sort: true,
-        search: "name",
-        render: (user) => (
-          <div className="flex items-center gap-3">
-            <Avatar
-              src={
-                user?.avatar
-                  ? HOST_API + "/file/avatar/" + user?.avatar
-                  : BlankUser
-              }
-              alt={user.name}
-              size="sm"
-            />
-            <span className="font-medium">{user.name}</span>
-          </div>
-        ),
-      },
-      {
-        header: language({ id: "Email", en: "Email" }),
-        sort: true,
-        search: "email",
-        cellClassName: "text-dark-300",
-        render: (user) => user.email,
-      },
-      {
         header: language({ id: "Peran", en: "Role" }),
         sort: true,
         search: "role",
         render: (user, _index, helpers) => {
-          const isNotJefripunza = !user.email.includes(myEmail);
           return (
             <button
               type="button"
               onClick={async () => {
-                if (!isNotJefripunza || isSubmitting) {
+                if (isSubmitting) {
                   return;
                 }
 
@@ -178,7 +145,7 @@ export default function UsersPage() {
                   ),
                 );
               }}
-              className={isNotJefripunza ? "cursor-pointer" : ""}
+              className="cursor-pointer"
               title={language({
                 id: "Klik untuk ganti peran",
                 en: "Click to switch role",
