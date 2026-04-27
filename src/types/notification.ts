@@ -10,8 +10,9 @@ export interface INotification {
   type: NotificationType;
   title: { id: string; en: string };
   message: { id: string; en: string };
-  is_read: boolean;
   link?: string;
   navigate?: string;
+  is_read: boolean;
   created_at: string; // ISO 8601
+  read_at: string | null;
 }

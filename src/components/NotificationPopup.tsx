@@ -86,6 +86,7 @@ export default function NotificationPopup({
         socket.off("notification");
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // Close on click outside

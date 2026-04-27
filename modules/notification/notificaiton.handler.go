@@ -125,9 +125,12 @@ func Delete(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "Invalid ID", nil)
 	}
 
+	now := time.Now()
+
 	result := variable.Db.
+		Model(&model.Notification{}).
 		Where("id = ? AND user_id = ?", id, userID).
-		Delete(&model.Notification{})
+		Updates(&model.Notification{DeletedAt: &now})
 	if result.Error != nil {
 		return dto.InternalServerError(c, "Failed to delete", nil)
 	}
@@ -150,9 +153,12 @@ func ClearAll(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "Invalid user ID", nil)
 	}
 
+	now := time.Now()
+
 	if err := variable.Db.
+		Model(&model.Notification{}).
 		Where("user_id = ?", userID).
-		Delete(&model.Notification{}).Error; err != nil {
+		Updates(&model.Notification{DeletedAt: &now}).Error; err != nil {
 		return dto.InternalServerError(c, "Failed to clear all", nil)
 	}
 

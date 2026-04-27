@@ -4,7 +4,6 @@ import (
 	"time"
 
 	userModel "react-go/modules/user/model"
-	"react-go/types"
 
 	"github.com/google/uuid"
 )
@@ -18,17 +17,19 @@ const (
 )
 
 type Notification struct {
-	ID        uint           `json:"id" gorm:"autoIncrement;primaryKey"`
-	UserID    uuid.UUID      `json:"user_id" gorm:"type:char(36);not null"`
-	User      userModel.User `json:"-" gorm:"foreignKey:UserID;references:ID"`
-	Type      string         `json:"type" gorm:"type:varchar(20)"`
-	Title     types.Language  `json:"title" gorm:"type:json"`
-	Message   types.Language  `json:"message" gorm:"type:json"`
-	Link      string         `json:"link,omitempty" gorm:"type:varchar(255);default:null"`     // new tab
-	Navigate  string         `json:"navigate,omitempty" gorm:"type:varchar(255);default:null"` // react router
-	IsRead    bool           `json:"is_read" gorm:"type:boolean;default:false"`
-	CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
-	ReadAt    *time.Time     `json:"read_at" gorm:"default:null"`
+	ID        uint       `json:"id" gorm:"autoIncrement;primaryKey"`
+	UserID    uuid.UUID  `json:"user_id" gorm:"type:char(36);not null"`
+	Type      string     `json:"type" gorm:"type:varchar(20)"`
+	Title     string     `json:"title" gorm:"type:text"`
+	Message   string     `json:"message" gorm:"type:text"`
+	Link      string     `json:"link,omitempty" gorm:"type:varchar(255);default:null"`     // new tab
+	Navigate  string     `json:"navigate,omitempty" gorm:"type:varchar(255);default:null"` // react router
+	IsRead    bool       `json:"is_read" gorm:"type:boolean;default:false"`
+	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	ReadAt    *time.Time `json:"read_at" gorm:"default:null"`
+	DeletedAt *time.Time `json:"-" gorm:"index;column:deleted_at;null"`
+	// relations
+	User userModel.User `json:"user" gorm:"foreignKey:UserID;references:ID;onDelete:CASCADE"`
 }
 
 func (s *Notification) Map() map[string]any {
