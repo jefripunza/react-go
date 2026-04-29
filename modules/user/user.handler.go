@@ -32,7 +32,7 @@ func GetMe(on string) func(*fiber.Ctx) error {
 // TODO: Management
 func GetPaginate(c *fiber.Ctx) error {
 	users := make([]model.User, 0)
-	pagination, err := function.Pagination(c, &model.User{}, []string{"name", "email", "role"}, &users)
+	pagination, err := function.Pagination(c, &model.User{}, []string{"name", "username", "role"}, &users)
 	if err != nil {
 		return dto.InternalServerError(c, "Failed to prepare pagination", nil)
 	}
@@ -64,6 +64,54 @@ func GetList(c *fiber.Ctx) error {
 
 	return dto.OK(c, "Success get users", fiber.Map{
 		"users": result,
+	})
+}
+
+func CreateUser(c *fiber.Ctx) error {
+	// Only SU can create users
+	currentUser, err := function.JwtGetUser(c)
+	if err != nil {
+		return dto.Unauthorized(c, "Unauthorized", nil)
+	}
+	if currentUser.Role != model.UserRoleAdmin {
+		return dto.Forbidden(c, "Only super admin can create users", nil)
+	}
+
+	var req struct {
+		Name     string `json:"name" validate:"required"`
+		Username string `json:"username" validate:"required"`
+		Password string `json:"password" validate:"required"`
+		Role     string `json:"role"`
+	}
+	if err := function.RequestBody(c, &req); err != nil {
+		return dto.BadRequest(c, err.Error(), nil)
+	}
+
+	// Check duplicate username
+	var existing model.User
+	if err := variable.Db.Where("username = ?", req.Username).First(&existing).Error; err == nil {
+		return dto.BadRequest(c, "Username already exists", nil)
+	}
+
+	// Only SU can assign SU role
+	role := model.UserRoleClient
+	if req.Role == model.UserRoleAdmin {
+		role = model.UserRoleAdmin
+	}
+
+	user := model.User{
+		Name:     strings.TrimSpace(req.Name),
+		Username: strings.TrimSpace(req.Username),
+		Password: hash.Password(req.Password),
+		Role:     role,
+		IsActive: true,
+	}
+	if err := variable.Db.Create(&user).Error; err != nil {
+		return dto.InternalServerError(c, "Failed to create user", nil)
+	}
+
+	return dto.Created(c, "User created", fiber.Map{
+		"user": user.Map(),
 	})
 }
 
@@ -103,63 +151,90 @@ func handleAvatarUpload(c *fiber.Ctx, currentAvatar string, userID string) (stri
 	return newFilename, nil
 }
 
-func Edit(on string) func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		idParam := c.Params("id")
-		id, err := uuid.Parse(idParam)
-		if err != nil {
-			return dto.BadRequest(c, "Invalid user id", nil)
-		}
-
-		updates := map[string]any{}
-
-		name := strings.TrimSpace(c.FormValue("name"))
-		if name != "" {
-			updates["name"] = name
-		}
-
-		phoneNumber := strings.TrimSpace(c.FormValue("phone_number"))
-		if phoneNumber != "" {
-			updates["phone_number"] = phoneNumber
-		}
-
-		var existing model.User
-		if err := variable.Db.
-			First(&existing, "id = ?", id.String()).
-			Error; err != nil {
-			return dto.NotFound(c, "User not found", nil)
-		}
-
-		newFilename, err := handleAvatarUpload(c, existing.Avatar, existing.ID.String())
-		if err != nil {
-			return dto.InternalServerError(c, "Failed to save avatar file", nil)
-		}
-		if newFilename != "" {
-			updates["avatar"] = newFilename
-		}
-
-		if len(updates) == 0 {
-			return dto.BadRequest(c, "No profile data to update", nil)
-		}
-
-		if err := variable.Db.Model(&existing).Updates(updates).Error; err != nil {
-			return dto.InternalServerError(c, "Failed to update user", nil)
-		}
-		if err := variable.Db.First(&existing, "id = ?", id.String()).Error; err != nil {
-			return dto.InternalServerError(c, "Failed to fetch updated user", nil)
-		}
-
-		// Send notification to edited user
-		socket.SendNotification(id.String(), notification.Notification{
-			Type:    notification.NotificationTypeInfo,
-			Title:   "Your profile was updated",
-			Message: "An administrator has updated your profile information.",
-		})
-
-		return dto.OK(c, "Success update user", fiber.Map{
-			"user": existing.Map(),
-		})
+func EditUser(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return dto.BadRequest(c, "Invalid user id", nil)
 	}
+
+	// Get current user for permission check
+	currentUser, err := function.JwtGetUser(c)
+	if err != nil {
+		return dto.Unauthorized(c, "Unauthorized", nil)
+	}
+
+	var req struct {
+		Name     string `json:"name"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Role     string `json:"role"`
+	}
+	if err := function.RequestBody(c, &req); err != nil {
+		return dto.BadRequest(c, err.Error(), nil)
+	}
+
+	var existing model.User
+	if err := variable.Db.
+		First(&existing, "id = ?", id.String()).
+		Error; err != nil {
+		return dto.NotFound(c, "User not found", nil)
+	}
+
+	updates := map[string]any{}
+
+	name := strings.TrimSpace(req.Name)
+	if name != "" {
+		updates["name"] = name
+	}
+
+	username := strings.TrimSpace(req.Username)
+	if username != "" && username != existing.Username {
+		// Check duplicate username
+		var dup model.User
+		if err := variable.Db.Where("username = ? AND id != ?", username, id.String()).First(&dup).Error; err == nil {
+			return dto.BadRequest(c, "Username already exists", nil)
+		}
+		updates["username"] = username
+	}
+
+	password := strings.TrimSpace(req.Password)
+	if password != "" {
+		updates["password"] = hash.Password(password)
+	}
+
+	// Role change: only SU can change roles, and only SU can assign SU
+	role := strings.TrimSpace(req.Role)
+	if role != "" && role != existing.Role {
+		if currentUser.Role != model.UserRoleAdmin {
+			return dto.Forbidden(c, "Only super admin can change user roles", nil)
+		}
+		if role == model.UserRoleAdmin || role == model.UserRoleClient {
+			updates["role"] = role
+		}
+	}
+
+	if len(updates) == 0 {
+		return dto.BadRequest(c, "No data to update", nil)
+	}
+
+	if err := variable.Db.Model(&existing).Updates(updates).Error; err != nil {
+		return dto.InternalServerError(c, "Failed to update user", nil)
+	}
+	if err := variable.Db.First(&existing, "id = ?", id.String()).Error; err != nil {
+		return dto.InternalServerError(c, "Failed to fetch updated user", nil)
+	}
+
+	// Send notification to edited user
+	socket.SendNotification(id.String(), notification.Notification{
+		Type:    notification.NotificationTypeInfo,
+		Title:   "Your profile was updated",
+		Message: "An administrator has updated your profile information.",
+	})
+
+	return dto.OK(c, "Success update user", fiber.Map{
+		"user": existing.Map(),
+	})
 }
 
 func ChangePassword(on string) func(c *fiber.Ctx) error {
@@ -212,11 +287,61 @@ func ChangePassword(on string) func(c *fiber.Ctx) error {
 	}
 }
 
+func SetActive(c *fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return dto.BadRequest(c, "Invalid user id", nil)
+	}
+
+	// Only SU can toggle active status
+	currentUser, err := function.JwtGetUser(c)
+	if err != nil {
+		return dto.Unauthorized(c, "Unauthorized", nil)
+	}
+	if currentUser.Role != model.UserRoleAdmin {
+		return dto.Forbidden(c, "Only super admin can toggle user status", nil)
+	}
+
+	var existing model.User
+	if err := variable.Db.
+		First(&existing, "id = ?", id.String()).
+		Error; err != nil {
+		return dto.NotFound(c, "User not found", nil)
+	}
+
+	// Prevent deactivating self
+	if existing.ID == currentUser.ID {
+		return dto.BadRequest(c, "Cannot deactivate yourself", nil)
+	}
+
+	newStatus := !existing.IsActive
+	if err := variable.Db.
+		Model(&existing).
+		Update("is_active", newStatus).
+		Error; err != nil {
+		return dto.InternalServerError(c, "Failed to toggle user status", nil)
+	}
+
+	return dto.OK(c, "Success toggle user status", fiber.Map{
+		"user": existing.Map(),
+	})
+}
+
 func RoleSwitch(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 	id, err := uuid.Parse(idParam)
 	if err != nil {
 		return dto.BadRequest(c, "Invalid user id", nil)
+	}
+
+	// Only SU can switch roles
+	currentUser, err := function.JwtGetUser(c)
+	if err != nil {
+		return dto.Unauthorized(c, "Unauthorized", nil)
+	}
+	if currentUser.Role != model.UserRoleAdmin {
+		return dto.Forbidden(c, "Only super admin can switch user roles", nil)
 	}
 
 	var existing model.User
@@ -261,6 +386,20 @@ func Remove(c *fiber.Ctx) error {
 	id, err := uuid.Parse(idParam)
 	if err != nil {
 		return dto.BadRequest(c, "Invalid user id", nil)
+	}
+
+	// Only SU can delete users
+	currentUser, err := function.JwtGetUser(c)
+	if err != nil {
+		return dto.Unauthorized(c, "Unauthorized", nil)
+	}
+	if currentUser.Role != model.UserRoleAdmin {
+		return dto.Forbidden(c, "Only super admin can delete users", nil)
+	}
+
+	// Prevent self-deletion
+	if currentUser.ID.String() == id.String() {
+		return dto.BadRequest(c, "Cannot delete yourself", nil)
 	}
 
 	if err = variable.Db.

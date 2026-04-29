@@ -10,5 +10,7 @@ export interface User {
   avatar?: string;
   phone_number?: string;
   role: UserRole;
+  is_fu: boolean; // first user
+  is_active: boolean;
   created_at: string;
 }

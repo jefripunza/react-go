@@ -7,6 +7,6 @@ import (
 func ProtectedRoute(r fiber.Router) {
 	r.Get("/paginate", GetPaginate)
 	r.Post("/create", Create)
-	r.Put("/:id", Update)
-	r.Delete("/:id", Delete)
+	r.Put("/edit/:id", Update)
+	r.Delete("/remove/:id", Delete)
 }

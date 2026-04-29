@@ -21,6 +21,7 @@ type User struct {
 	Username  string    `json:"username" gorm:"uniqueIndex"`
 	Password  string    `json:"password" gorm:"not null"`
 	Role      string    `json:"role" gorm:"not null"`
+	IsFu      bool      `json:"is_fu" gorm:"not null;default:false"` // first user
 	IsActive  bool      `json:"is_active" gorm:"not null;default:true"`
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 }
@@ -40,6 +41,8 @@ func (s *User) Map() map[string]any {
 		"avatar":     s.Avatar,
 		"username":   s.Username,
 		"role":       s.Role,
+		"is_fu":      s.IsFu,
+		"is_active":  s.IsActive,
 		"created_at": s.CreatedAt,
 	}
 }
@@ -55,6 +58,7 @@ func (User) Seed(db *gorm.DB) {
 				Username: "admin",
 				Password: hash.Password("admin123"),
 				Role:     UserRoleAdmin,
+				IsFu:     true,
 			},
 		}
 
