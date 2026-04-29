@@ -387,3 +387,61 @@ func Remove(c *fiber.Ctx) error {
 
 	return dto.OK(c, "Success delete user", nil)
 }
+
+func BulkRemove(c *fiber.Ctx) error {
+	// Only SU can bulk delete users
+	currentUser, err := function.JwtGetUser(c)
+	if err != nil {
+		return dto.Unauthorized(c, "Unauthorized", nil)
+	}
+	if currentUser.Role != model.UserRoleAdmin {
+		return dto.Forbidden(c, "Only super admin can bulk delete users", nil)
+	}
+
+	var req struct {
+		IDs []string `json:"ids"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return dto.BadRequest(c, "Invalid request body", nil)
+	}
+
+	if len(req.IDs) == 0 {
+		return dto.BadRequest(c, "No IDs provided", nil)
+	}
+
+	// Filter out self and is_fu users
+	validIDs := make([]string, 0, len(req.IDs))
+	for _, idStr := range req.IDs {
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			continue
+		}
+		// Skip self
+		if id.String() == currentUser.ID.String() {
+			continue
+		}
+		// Skip is_fu users
+		var user model.User
+		if err := variable.Db.First(&user, "id = ?", id.String()).Error; err != nil {
+			continue
+		}
+		if user.IsFu {
+			continue
+		}
+		validIDs = append(validIDs, id.String())
+	}
+
+	if len(validIDs) == 0 {
+		return dto.BadRequest(c, "No valid users to delete", nil)
+	}
+
+	if err := variable.Db.
+		Delete(&model.User{}, "id IN ?", validIDs).
+		Error; err != nil {
+		return dto.InternalServerError(c, "Failed to bulk delete users", nil)
+	}
+
+	return dto.OK(c, "Success bulk delete users", fiber.Map{
+		"deleted_count": len(validIDs),
+	})
+}

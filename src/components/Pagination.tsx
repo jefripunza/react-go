@@ -116,12 +116,12 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const isMountedRef = useRef(false);
   const isFetchingRef = useRef(false);
 
-  // Derived URLs from module
   const baseUrl = `/api/${module}`;
   const paginateUrl = `${baseUrl}/paginate`;
   const createUrl = `${baseUrl}/create`;
   const editUrl = (id: string | number) => `${baseUrl}/edit/${id}`;
   const removeUrl = (id: string | number) => `${baseUrl}/remove/${id}`;
+  const bulkRemoveUrl = `${baseUrl}/bulk-remove`;
   const setActiveUrl = (id: string | number) => `${baseUrl}/set-active/${id}`;
 
   // CRUD state
@@ -140,6 +140,13 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const [columnSearches, setColumnSearches] = useState<Record<string, string>>({});
   const [debouncedColumnSearches, setDebouncedColumnSearches] = useState<Record<string, string>>({});
 
+  // Bulk select state
+  const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
+  const selectedIdsRef = useRef(selectedIds);
+  selectedIdsRef.current = selectedIds;
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   // ─── Row helpers ──────────────────────────────────────────────────
@@ -156,6 +163,15 @@ const Pagination = forwardRef(function PaginationInner<T>(
       return Boolean((row as { is_active: unknown }).is_active);
     }
     return false;
+  };
+
+  const isRowFu = (row: T): boolean => {
+    return (
+      typeof row === "object" &&
+      row !== null &&
+      "is_fu" in row &&
+      Boolean((row as Record<string, unknown>).is_fu)
+    );
   };
 
   // ─── Toggle is_active ────────────────────────────────────────────
@@ -194,13 +210,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
       strict: true,
       align: "left",
       render: (row) => {
-        const isFu =
-          typeof row === "object" &&
-          row !== null &&
-          "is_fu" in row &&
-          Boolean((row as Record<string, unknown>).is_fu);
-
-        if (isFu) return null;
+        if (isRowFu(row)) return null;
 
         return (
           <div className="flex items-center gap-1">
@@ -227,7 +237,37 @@ const Pagination = forwardRef(function PaginationInner<T>(
       },
     };
 
-    return [actionColumn, ...columns];
+    // Checkbox column for multi-select
+    const checkboxColumn: PaginationColumn<T> = {
+      key: "__checkbox__",
+      header: "#",
+      strict: true,
+      align: "center",
+      render: (row) => {
+        if (isRowFu(row)) return null;
+        const id = getRowId(row);
+        return (
+          <input
+            type="checkbox"
+            checked={selectedIdsRef.current.has(id)}
+            onChange={(e) => {
+              setSelectedIds((prev) => {
+                const next = new Set(prev);
+                if (e.target.checked) {
+                  next.add(id);
+                } else {
+                  next.delete(id);
+                }
+                return next;
+              });
+            }}
+            className="h-4 w-4 rounded border-dark-500 bg-dark-900/60 text-accent-500 focus:ring-accent-500/30 cursor-pointer accent-accent-500"
+          />
+        );
+      },
+    };
+
+    return [actionColumn, checkboxColumn, ...columns];
   }, [columns, hasCrud, fields, language, useIsActive, togglingActiveId]);
 
   // Derive searchable field keys from columns with search: true
@@ -435,6 +475,51 @@ const Pagination = forwardRef(function PaginationInner<T>(
     }
   };
 
+  // ─── Bulk select helpers ──────────────────────────────────────────
+
+  // Get checkable rows (exclude is_fu)
+  const checkableRows = useMemo(() => {
+    return rows.filter((row) => !isRowFu(row));
+  }, [rows]);
+
+  const isAllChecked =
+    checkableRows.length > 0 &&
+    checkableRows.every((row) => selectedIds.has(getRowId(row)));
+
+  const toggleSelectAll = () => {
+    if (isAllChecked) {
+      setSelectedIds(new Set());
+    } else {
+      const ids = new Set(checkableRows.map((row) => getRowId(row)));
+      setSelectedIds(ids);
+    }
+  };
+
+  // Clear selection when rows change (page change, search, etc.)
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [rows]);
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkDeleting(true);
+    try {
+      await satellite.post(bulkRemoveUrl, {
+        ids: Array.from(selectedIds),
+      });
+      setBulkDeleteDialogOpen(false);
+      setSelectedIds(new Set());
+      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Bulk delete failed";
+      alert(msg);
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   // ─── Pagination window ───────────────────────────────────────────
 
   const paginationWindow = useMemo(() => {
@@ -531,23 +616,31 @@ const Pagination = forwardRef(function PaginationInner<T>(
                 {mergedColumns.map((column) => (
                   <TableHead
                     key={column.key}
-                    className={`${getAlignClassName(column.align)} ${column.strict ? "w-px whitespace-nowrap" : ""} ${column.headerClassName ?? ""}`.trim()}
+                    className={
+                      column.key === "__checkbox__"
+                        ? "w-px whitespace-nowrap text-center"
+                        : `${getAlignClassName(column.align)} ${column.strict ? "w-px whitespace-nowrap" : ""} ${column.headerClassName ?? ""}`.trim()
+                    }
                   >
-                    {column.sort ? (
+                    {column.key === "__checkbox__" ? (
+                      <input
+                        type="checkbox"
+                        checked={isAllChecked}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-dark-500 bg-dark-900/60 text-accent-500 focus:ring-accent-500/30 cursor-pointer accent-accent-500"
+                      />
+                    ) : column.sort ? (
                       <button
                         type="button"
                         onClick={() => {
                           if (sortBy === column.key) {
                             if (sortOrder === "DESC") {
-                              // DESC → ASC
                               setSortOrder("ASC");
                             } else {
-                              // ASC → none
                               setSortBy(undefined);
                               setSortOrder(undefined);
                             }
                           } else {
-                            // none → DESC
                             setSortBy(column.key);
                             setSortOrder("DESC");
                           }
@@ -643,6 +736,22 @@ const Pagination = forwardRef(function PaginationInner<T>(
               )}
             </TableBody>
           </Table>
+
+          {/* Bulk delete button */}
+          {hasCrud && selectedIds.size > 0 && (
+            <div className="mt-3">
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex items-center gap-2"
+                onClick={() => setBulkDeleteDialogOpen(true)}
+              >
+                <HiOutlineTrash size={14} />
+                {language({ id: "Hapus", en: "Delete" })} {selectedIds.size}{" "}
+                {language({ id: "data", en: "items" })}
+              </Button>
+            </div>
+          )}
 
           <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
             <div className="flex items-center gap-3">
@@ -858,6 +967,50 @@ const Pagination = forwardRef(function PaginationInner<T>(
                 disabled={isSubmitting}
               >
                 {language({ id: "Hapus", en: "Delete" })}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* ─── Bulk Delete Confirmation Dialog ──────────────────────────── */}
+      {hasCrud && (
+        <Dialog open={bulkDeleteDialogOpen} onClose={() => {}}>
+          <DialogContent onClose={() => setBulkDeleteDialogOpen(false)}>
+            <DialogHeader>
+              <DialogTitle>
+                {language({ id: "Hapus Data", en: "Delete Data" })}
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-dark-300">
+              {language({
+                id: "Apakah Anda yakin ingin menghapus",
+                en: "Are you sure you want to delete",
+              })}{" "}
+              <strong className="text-foreground">
+                {selectedIds.size}{" "}
+                {language({ id: "data", en: "items" })}
+              </strong>
+              ?{" "}
+              {language({
+                id: "Tindakan ini tidak dapat dibatalkan.",
+                en: "This action cannot be undone.",
+              })}
+            </p>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setBulkDeleteDialogOpen(false)}
+              >
+                {language({ id: "Batal", en: "Cancel" })}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={isBulkDeleting}
+              >
+                {language({ id: "Hapus", en: "Delete" })} {selectedIds.size}{" "}
+                {language({ id: "data", en: "items" })}
               </Button>
             </DialogFooter>
           </DialogContent>

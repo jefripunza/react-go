@@ -117,3 +117,26 @@ func Delete(c *fiber.Ctx) error {
 
 	return dto.OK(c, "Role deleted", nil)
 }
+
+func BulkDelete(c *fiber.Ctx) error {
+	var req struct {
+		IDs []uint64 `json:"ids"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return dto.BadRequest(c, "Invalid request body", nil)
+	}
+
+	if len(req.IDs) == 0 {
+		return dto.BadRequest(c, "No IDs provided", nil)
+	}
+
+	if err := variable.Db.
+		Delete(&model.Role{}, "id IN ?", req.IDs).
+		Error; err != nil {
+		return dto.InternalServerError(c, "Failed to bulk delete roles", nil)
+	}
+
+	return dto.OK(c, "Success bulk delete roles", fiber.Map{
+		"deleted_count": len(req.IDs),
+	})
+}

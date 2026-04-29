@@ -9,4 +9,5 @@ func ProtectedRoute(r fiber.Router) {
 	r.Post("/create", Create)
 	r.Put("/edit/:id", Update)
 	r.Delete("/remove/:id", Delete)
+	r.Post("/bulk-remove", BulkDelete)
 }
