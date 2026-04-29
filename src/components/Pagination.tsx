@@ -183,32 +183,42 @@ const Pagination = forwardRef(function PaginationInner<T>(
       header: language({ id: "Aksi", en: "Action" }),
       strict: true,
       align: "left",
-      render: (row) => (
-        <div className="flex items-center gap-1">
-          {useIsActive && (
-            <Switch
-              checked={getRowIsActive(row)}
-              onCheckedChange={() => handleToggleActive(row)}
-              disabled={togglingActiveId === getRowId(row)}
-            />
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => openEdit(row)}
-          >
-            <HiOutlinePencil size={16} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => openDelete(row)}
-            className="text-neon-red hover:bg-neon-red/10"
-          >
-            <HiOutlineTrash size={16} />
-          </Button>
-        </div>
-      ),
+      render: (row) => {
+        const isFu =
+          typeof row === "object" &&
+          row !== null &&
+          "is_fu" in row &&
+          Boolean((row as Record<string, unknown>).is_fu);
+
+        if (isFu) return null;
+
+        return (
+          <div className="flex items-center gap-1">
+            {useIsActive && (
+              <Switch
+                checked={getRowIsActive(row)}
+                onCheckedChange={() => handleToggleActive(row)}
+                disabled={togglingActiveId === getRowId(row)}
+              />
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => openEdit(row)}
+            >
+              <HiOutlinePencil size={16} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => openDelete(row)}
+              className="text-neon-red hover:bg-neon-red/10"
+            >
+              <HiOutlineTrash size={16} />
+            </Button>
+          </div>
+        );
+      },
     };
 
     return [actionColumn, ...columns];

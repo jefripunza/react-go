@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"react-go/dto"
@@ -94,7 +95,11 @@ func Logout(c *fiber.Ctx) error {
 func Validate(c *fiber.Ctx) error {
 	user, err := function.JwtGetUser(c)
 	if err != nil {
-		return dto.InternalServerError(c, err.Error(), nil)
+		message := err.Error()
+		if strings.Contains(message, "user not found") {
+			return dto.Unauthorized(c, "user not found", nil)
+		}
+		return dto.InternalServerError(c, message, nil)
 	}
 
 	return dto.OK(c, "Token valid", fiber.Map{
