@@ -35,6 +35,7 @@ import {
   HiOutlineChevronLeft,
   HiOutlineChevronRight,
   HiOutlineChevronUp,
+  HiOutlineChevronDown,
   HiOutlinePencil,
   HiOutlineTrash,
   HiOutlinePlus,
@@ -50,6 +51,7 @@ interface PaginationFetchParams {
   sort_by?: string;
   sort_order?: "ASC" | "DESC";
   search_fields?: string;
+  [key: `col_${string}`]: string | undefined;
 }
 
 export interface PaginationHelpers<T> {
@@ -63,7 +65,7 @@ export interface PaginationColumn<T> {
   strict?: boolean;
   align?: "left" | "center" | "right";
   sort?: boolean;
-  search?: string;
+  search?: boolean;
   headerClassName?: string;
   cellClassName?: string;
   render: (row: T, index: number, helpers: PaginationHelpers<T>) => ReactNode;
@@ -107,7 +109,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const [limit, setLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<string | undefined>(undefined);
-  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -133,6 +135,10 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const [togglingActiveId, setTogglingActiveId] = useState<
     string | number | null
   >(null);
+
+  // Per-column search state
+  const [columnSearches, setColumnSearches] = useState<Record<string, string>>({});
+  const [debouncedColumnSearches, setDebouncedColumnSearches] = useState<Record<string, string>>({});
 
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
@@ -224,21 +230,34 @@ const Pagination = forwardRef(function PaginationInner<T>(
     return [actionColumn, ...columns];
   }, [columns, hasCrud, fields, language, useIsActive, togglingActiveId]);
 
+  // Derive searchable field keys from columns with search: true
   const searchableFields = useMemo(() => {
     return mergedColumns
-      .map((column) => column.search?.trim())
-      .filter((field): field is string => Boolean(field));
+      .filter((column) => column.search)
+      .map((column) => column.key);
   }, [mergedColumns]);
+
+  // Has any column with search: true
+  const hasColumnSearch = searchableFields.length > 0;
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setDebouncedSearch(search);
     }, 500);
-
     return () => {
       window.clearTimeout(timeoutId);
     };
   }, [search]);
+
+  // Debounce per-column searches
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedColumnSearches(columnSearches);
+    }, 500);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [columnSearches]);
 
   const fetchRows = useCallback(
     async (
@@ -246,7 +265,8 @@ const Pagination = forwardRef(function PaginationInner<T>(
       q: string,
       l: number,
       sb: string | undefined,
-      so: "ASC" | "DESC",
+      so: "ASC" | "DESC" | undefined,
+      colSearches: Record<string, string>,
     ) => {
       if (isFetchingRef.current) return;
       isFetchingRef.current = true;
@@ -263,6 +283,13 @@ const Pagination = forwardRef(function PaginationInner<T>(
               ? searchableFields.join(",")
               : undefined,
         };
+
+        // Add per-column search params
+        for (const [key, val] of Object.entries(colSearches)) {
+          if (val.trim()) {
+            params[`col_${key}` as `col_${string}`] = val.trim();
+          }
+        }
 
         const response = await satellite.get<Response<WithPagination<T>>>(
           paginateUrl,
@@ -292,12 +319,12 @@ const Pagination = forwardRef(function PaginationInner<T>(
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
-    fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder);
-  }, [currentPage, debouncedSearch, limit, sortBy, sortOrder, fetchRows]);
+    fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
+  }, [currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches, fetchRows]);
 
   useImperativeHandle(ref, () => ({
     reload: async () => {
-      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder);
+      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
     },
   }));
 
@@ -379,7 +406,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
       }
 
       setDialogOpen(false);
-      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder);
+      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -397,7 +424,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
       await satellite.delete(removeUrl(getRowId(deletingRow)));
       setDeleteDialogOpen(false);
       setDeletingRow(null);
-      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder);
+      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -425,11 +452,11 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const helpers = useMemo<PaginationHelpers<T>>(
     () => ({
       reload: async () => {
-        await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder);
+        await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
       },
       setRows,
     }),
-    [currentPage, debouncedSearch, fetchRows, limit, sortBy, sortOrder],
+    [currentPage, debouncedSearch, debouncedColumnSearches, fetchRows, limit, sortBy, sortOrder],
   );
 
   const getAlignClassName = (align?: "left" | "center" | "right") => {
@@ -503,20 +530,26 @@ const Pagination = forwardRef(function PaginationInner<T>(
               <TableRow>
                 {mergedColumns.map((column) => (
                   <TableHead
-                    key={column.header}
+                    key={column.key}
                     className={`${getAlignClassName(column.align)} ${column.strict ? "w-px whitespace-nowrap" : ""} ${column.headerClassName ?? ""}`.trim()}
                   >
-                    {column.sort && column.search ? (
+                    {column.sort ? (
                       <button
                         type="button"
                         onClick={() => {
-                          if (sortBy === column.search) {
-                            setSortOrder((prev) =>
-                              prev === "ASC" ? "DESC" : "ASC",
-                            );
+                          if (sortBy === column.key) {
+                            if (sortOrder === "DESC") {
+                              // DESC → ASC
+                              setSortOrder("ASC");
+                            } else {
+                              // ASC → none
+                              setSortBy(undefined);
+                              setSortOrder(undefined);
+                            }
                           } else {
-                            setSortBy(column.search);
-                            setSortOrder("ASC");
+                            // none → DESC
+                            setSortBy(column.key);
+                            setSortOrder("DESC");
                           }
                           setCurrentPage(1);
                         }}
@@ -528,16 +561,15 @@ const Pagination = forwardRef(function PaginationInner<T>(
                       >
                         <span>{column.header}</span>
                         <span className="text-dark-400">
-                          <HiOutlineChevronUp
-                            size={14}
-                            className={
-                              sortBy === column.search
-                                ? sortOrder === "ASC"
-                                  ? ""
-                                  : "rotate-180"
-                                : "opacity-30"
-                            }
-                          />
+                          {sortBy === column.key ? (
+                            sortOrder === "DESC" ? (
+                              <HiOutlineChevronDown size={14} />
+                            ) : (
+                              <HiOutlineChevronUp size={14} />
+                            )
+                          ) : (
+                            <HiOutlineChevronUp size={14} className="opacity-30" />
+                          )}
                         </span>
                       </button>
                     ) : (
@@ -546,6 +578,29 @@ const Pagination = forwardRef(function PaginationInner<T>(
                   </TableHead>
                 ))}
               </TableRow>
+              {/* Per-column search row */}
+              {hasColumnSearch && (
+                <TableRow>
+                  {mergedColumns.map((column) => (
+                    <TableHead key={`search-${column.key}`} className="py-1">
+                      {column.search ? (
+                        <Input
+                          placeholder={`${language({ id: "Cari", en: "Search" })}...`}
+                          value={columnSearches[column.key] ?? ""}
+                          onChange={(e) => {
+                            setColumnSearches((prev) => ({
+                              ...prev,
+                              [column.key]: e.target.value,
+                            }));
+                            setCurrentPage(1);
+                          }}
+                          className="h-7 text-xs px-2"
+                        />
+                      ) : null}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              )}
             </TableHeader>
             <TableBody>
               {rows.length === 0 ? (
@@ -576,7 +631,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                     <TableRow key={key}>
                       {mergedColumns.map((column) => (
                         <TableCell
-                          key={`${key}-${column.header}`}
+                          key={`${key}-${column.key}`}
                           className={`${getAlignClassName(column.align)} ${column.strict ? "w-px whitespace-nowrap" : ""} ${column.cellClassName ?? ""}`.trim()}
                         >
                           {column.render(row, idx, helpers)}

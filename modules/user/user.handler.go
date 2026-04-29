@@ -78,10 +78,9 @@ func CreateUser(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		Name     string `json:"name" validate:"required"`
-		Username string `json:"username" validate:"required"`
-		Password string `json:"password" validate:"required"`
-		Role     string `json:"role"`
+		Name     string `json:"name" validate:"required,min=3,max=100"`
+		Username string `json:"username" validate:"required,min=5,max=20"`
+		Password string `json:"password" validate:"required,min=8,max=50"`
 	}
 	if err := function.RequestBody(c, &req); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
@@ -89,22 +88,18 @@ func CreateUser(c *fiber.Ctx) error {
 
 	// Check duplicate username
 	var existing model.User
-	if err := variable.Db.Where("username = ?", req.Username).First(&existing).Error; err == nil {
+	if err := variable.Db.
+		Where("username = ?", req.Username).
+		First(&existing).
+		Error; err == nil {
 		return dto.BadRequest(c, "Username already exists", nil)
-	}
-
-	// Only SU can assign SU role
-	role := model.UserRoleClient
-	if req.Role == model.UserRoleAdmin {
-		role = model.UserRoleAdmin
 	}
 
 	user := model.User{
 		Name:     strings.TrimSpace(req.Name),
 		Username: strings.TrimSpace(req.Username),
 		Password: hash.Password(req.Password),
-		Role:     role,
-		IsActive: true,
+		Role:     model.UserRoleClient,
 	}
 	if err := variable.Db.Create(&user).Error; err != nil {
 		return dto.InternalServerError(c, "Failed to create user", nil)
@@ -158,17 +153,10 @@ func EditUser(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "Invalid user id", nil)
 	}
 
-	// Get current user for permission check
-	currentUser, err := function.JwtGetUser(c)
-	if err != nil {
-		return dto.Unauthorized(c, "Unauthorized", nil)
-	}
-
 	var req struct {
 		Name     string `json:"name"`
 		Username string `json:"username"`
 		Password string `json:"password"`
-		Role     string `json:"role"`
 	}
 	if err := function.RequestBody(c, &req); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
@@ -201,17 +189,6 @@ func EditUser(c *fiber.Ctx) error {
 	password := strings.TrimSpace(req.Password)
 	if password != "" {
 		updates["password"] = hash.Password(password)
-	}
-
-	// Role change: only SU can change roles, and only SU can assign SU
-	role := strings.TrimSpace(req.Role)
-	if role != "" && role != existing.Role {
-		if currentUser.Role != model.UserRoleAdmin {
-			return dto.Forbidden(c, "Only super admin can change user roles", nil)
-		}
-		if role == model.UserRoleAdmin || role == model.UserRoleClient {
-			updates["role"] = role
-		}
 	}
 
 	if len(updates) == 0 {

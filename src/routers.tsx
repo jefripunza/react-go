@@ -43,19 +43,19 @@ const sidebarLinks: ISidebarLink[] = [
   },
 
   {
-    label: { id: "Pengguna", en: "Users" },
-    path: "users",
-    element: <UsersPage />,
-    roles: ["su"],
-    icon: HiOutlineUser,
-  },
-
-  {
     label: { id: "Peran", en: "Roles" },
     path: "roles",
     element: <RolesPage />,
     roles: ["su"],
     icon: HiOutlineShieldCheck,
+  },
+
+  {
+    label: { id: "Pengguna", en: "Users" },
+    path: "users",
+    element: <UsersPage />,
+    roles: ["su"],
+    icon: HiOutlineUser,
   },
 
   {

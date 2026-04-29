@@ -39,22 +39,25 @@ export default function MasterDataPage({}: MasterDataPageProps) {
   const columns = useMemo<PaginationColumn<MasterDataItem>[]>(
     () => [
       {
+        key: "category",
         header: language({ id: "Kategori", en: "Category" }),
         sort: true,
-        search: "category",
+        search: true,
         render: (item) => (
           <span className="font-medium text-accent-400">{item.category}</span>
         ),
       },
       {
+        key: "key",
         header: language({ id: "Kunci", en: "Key" }),
         sort: true,
-        search: "key",
+        search: true,
         render: (item) => <span className="font-mono text-sm">{item.key}</span>,
       },
       {
+        key: "value",
         header: language({ id: "Nilai", en: "Value" }),
-        search: "value",
+        search: true,
         render: (item) => (
           <span className="text-dark-300 max-w-xs truncate block">
             {item.value || "-"}
@@ -62,9 +65,9 @@ export default function MasterDataPage({}: MasterDataPageProps) {
         ),
       },
       {
+        key: "created_at",
         header: language({ id: "Dibuat Pada", en: "Created At" }),
         sort: true,
-        search: "created_at",
         render: (item) => formatDateTime(item.created_at),
       },
     ],

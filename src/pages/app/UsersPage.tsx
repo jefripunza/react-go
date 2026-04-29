@@ -49,7 +49,7 @@ export default function UsersPage({}: UsersPageProps) {
         key: "name",
         header: language({ id: "Nama", en: "Name" }),
         sort: true,
-        search: "name",
+        search: true,
         render: (user) => (
           <div className="flex items-center gap-3">
             <Avatar
@@ -66,7 +66,7 @@ export default function UsersPage({}: UsersPageProps) {
         key: "username",
         header: language({ id: "Username", en: "Username" }),
         sort: true,
-        search: "username",
+        search: true,
         render: (user) => (
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm text-dark-300">
@@ -79,7 +79,7 @@ export default function UsersPage({}: UsersPageProps) {
         key: "role",
         header: language({ id: "Role", en: "Role" }),
         sort: true,
-        search: "role",
+        search: true,
         render: (user) => (
           <div className="flex items-center gap-2">
             <Badge variant={user.role === "su" ? "default" : "secondary"}>

@@ -103,16 +103,15 @@ func Delete(c *fiber.Ctx) error {
 	}
 
 	var role model.Role
-	if err := variable.Db.First(&role, "id = ?", id).Error; err != nil {
+	if err := variable.Db.
+		First(&role, "id = ?", id).
+		Error; err != nil {
 		return dto.NotFound(c, "Role not found", nil)
 	}
 
-	// Prevent deletion of protected roles
-	if role.Name == "su" || role.Name == "user" {
-		return dto.BadRequest(c, "Cannot delete protected role", nil)
-	}
-
-	if err := variable.Db.Delete(&role).Error; err != nil {
+	if err := variable.Db.
+		Delete(&role).
+		Error; err != nil {
 		return dto.InternalServerError(c, "Failed to delete role", nil)
 	}
 

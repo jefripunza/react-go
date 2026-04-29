@@ -14,9 +14,6 @@ export default function RolesPage({}: RolesPageProps) {
   const paginationRef = useRef<PaginationHandle>(null);
   const { language } = useLanguageStore();
 
-  const isProtected = (role: Role) =>
-    role.name === "su" || role.name === "user";
-
   const fields = useMemo<PaginationField[]>(
     () => [
       {
@@ -39,33 +36,28 @@ export default function RolesPage({}: RolesPageProps) {
   const columns = useMemo<PaginationColumn<Role>[]>(
     () => [
       {
+        key: "name",
         header: language({ id: "Nama", en: "Name" }),
         sort: true,
-        search: "name",
+        search: true,
         render: (role) => (
           <div className="flex items-center gap-2">
             <span className="font-medium">{role.name}</span>
-            {isProtected(role) && (
-              <Badge variant="secondary">
-                {language({ id: "Dilindungi", en: "Protected" })}
-              </Badge>
-            )}
           </div>
         ),
       },
       {
+        key: "description",
         header: language({ id: "Deskripsi", en: "Description" }),
-        search: "description",
+        search: true,
         render: (role) => (
-          <span className="text-dark-300">
-            {role.description || "-"}
-          </span>
+          <span className="text-dark-300">{role.description || "-"}</span>
         ),
       },
       {
+        key: "created_at",
         header: language({ id: "Dibuat Pada", en: "Created At" }),
         sort: true,
-        search: "created_at",
         render: (role) => formatDateTime(role.created_at),
       },
     ],
