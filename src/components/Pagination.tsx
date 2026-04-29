@@ -58,6 +58,7 @@ export interface PaginationHelpers<T> {
 }
 
 export interface PaginationColumn<T> {
+  key: string;
   header: string;
   strict?: boolean;
   align?: "left" | "center" | "right";
@@ -129,7 +130,9 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const [deletingRow, setDeletingRow] = useState<T | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [togglingActiveId, setTogglingActiveId] = useState<string | number | null>(null);
+  const [togglingActiveId, setTogglingActiveId] = useState<
+    string | number | null
+  >(null);
 
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
@@ -180,7 +183,8 @@ const Pagination = forwardRef(function PaginationInner<T>(
     if (!hasCrud || !fields) return columns;
 
     const actionColumn: PaginationColumn<T> = {
-      header: language({ id: "Aksi", en: "Action" }),
+      key: "__action__",
+      header: language({ id: "AKSI", en: "ACTION" }),
       strict: true,
       align: "left",
       render: (row) => {
@@ -201,11 +205,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                 disabled={togglingActiveId === getRowId(row)}
               />
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openEdit(row)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => openEdit(row)}>
               <HiOutlinePencil size={16} />
             </Button>
             <Button
@@ -312,9 +312,10 @@ const Pagination = forwardRef(function PaginationInner<T>(
           const val = (row as Record<string, unknown>)[field.key];
           data[field.key] = val != null ? String(val) : "";
         } else {
-          data[field.key] = field.type === "select" && field.options?.length
-            ? field.options[0].value
-            : "";
+          data[field.key] =
+            field.type === "select" && field.options?.length
+              ? field.options[0].value
+              : "";
         }
       }
       return data;
@@ -492,19 +493,6 @@ const Pagination = forwardRef(function PaginationInner<T>(
                   className="w-64 pl-9"
                 />
               </div>
-              <Select
-                value={limit}
-                onChange={(e) => {
-                  setLimit(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="w-20"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </Select>
             </div>
           </div>
         </CardHeader>
@@ -567,7 +555,10 @@ const Pagination = forwardRef(function PaginationInner<T>(
                     className="py-8 text-center text-dark-400"
                   >
                     {isLoading
-                      ? language({ id: "Memuat data...", en: "Loading data..." })
+                      ? language({
+                          id: "Memuat data...",
+                          en: "Loading data...",
+                        })
                       : language({
                           id: "Tidak ada data ditemukan",
                           en: "No data found",
@@ -599,17 +590,34 @@ const Pagination = forwardRef(function PaginationInner<T>(
           </Table>
 
           <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
-            <p className="text-xs text-dark-400">
-              {language({ id: "Menampilkan", en: "Showing" })} {from} - {to}{" "}
-              {language({ id: "dari", en: "of" })} {total}{" "}
-              {language({ id: "data", en: "items" })}
-            </p>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-dark-400">
+                {language({ id: "Menampilkan", en: "Showing" })} {from} - {to}{" "}
+                {language({ id: "dari", en: "of" })} {total}{" "}
+                {language({ id: "data", en: "items" })}
+              </p>
+              <Select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="w-16 h-8 px-0 py-0 text-[11px] border-accent-500/20 bg-dark-900/40 hover:border-accent-500/40 transition-all text-center"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 disabled={safeCurrentPage <= 1}
                 onClick={() => setCurrentPage((p) => p - 1)}
+                className="w-8 h-8 p-0 rounded-full"
               >
                 <HiOutlineChevronLeft size={14} />
               </Button>
@@ -620,6 +628,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(1)}
+                    className="w-8 h-8 p-0 rounded-full"
                   >
                     1
                   </Button>
@@ -635,6 +644,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                   variant={page === safeCurrentPage ? "default" : "outline"}
                   size="sm"
                   onClick={() => setCurrentPage(page)}
+                  className="w-8 h-8 p-0 rounded-full"
                 >
                   {page}
                 </Button>
@@ -650,6 +660,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(totalPages)}
+                    className="w-8 h-8 p-0 rounded-full"
                   >
                     {totalPages}
                   </Button>
@@ -661,6 +672,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                 size="sm"
                 disabled={safeCurrentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => p + 1)}
+                className="w-8 h-8 p-0 rounded-full"
               >
                 <HiOutlineChevronRight size={14} />
               </Button>
@@ -671,11 +683,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
 
       {/* ─── Add / Edit Dialog ──────────────────────────────────────── */}
       {hasCrud && fields && (
-        <Dialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          width="520px"
-        >
+        <Dialog open={dialogOpen} onClose={() => {}} width="520px">
           <DialogContent onClose={() => setDialogOpen(false)}>
             <DialogHeader>
               <DialogTitle>
@@ -687,7 +695,10 @@ const Pagination = forwardRef(function PaginationInner<T>(
             <div className="space-y-4">
               {fields.map((field) => (
                 <div key={field.key}>
-                  <Label htmlFor={`field-${field.key}`} required={field.required}>
+                  <Label
+                    htmlFor={`field-${field.key}`}
+                    required={field.required}
+                  >
                     {field.label}
                   </Label>
                   {field.type === "select" ? (
@@ -758,10 +769,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
 
       {/* ─── Delete Confirmation Dialog ─────────────────────────────── */}
       {hasCrud && (
-        <Dialog
-          open={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
-        >
+        <Dialog open={deleteDialogOpen} onClose={() => {}}>
           <DialogContent onClose={() => setDeleteDialogOpen(false)}>
             <DialogHeader>
               <DialogTitle>

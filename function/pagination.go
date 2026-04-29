@@ -77,6 +77,9 @@ func Pagination(c *fiber.Ctx, model interface{}, search []string, destination in
 		}
 	}
 
+	// Per-column search: col_[field]=value
+	query = applyColumnSearches(c, query, columnMap)
+
 	sortBy = normalizeColumnName(sortBy, columnMap)
 	if sortBy == "" {
 		sortBy = "id"
@@ -164,6 +167,9 @@ func PaginationScoped(c *fiber.Ctx, scopedDb *gorm.DB, model interface{}, search
 			query = query.Where(strings.Join(conditions, " OR "), args...)
 		}
 	}
+
+	// Per-column search: col_[field]=value
+	query = applyColumnSearches(c, query, columnMap)
 
 	sortBy = normalizeColumnName(sortBy, columnMap)
 	if sortBy == "" {
@@ -293,4 +299,30 @@ func filterSearchFields(defaultSearch []string, searchFieldsQuery string, validC
 	}
 
 	return result
+}
+
+// applyColumnSearches reads col_[field]=value query params and adds
+// individual AND conditions (LOWER(field) LIKE '%value%') to the query.
+func applyColumnSearches(c *fiber.Ctx, query *gorm.DB, columnMap map[string]string) *gorm.DB {
+	c.Context().QueryArgs().VisitAll(func(key, value []byte) {
+		keyStr := string(key)
+		if !strings.HasPrefix(keyStr, "col_") {
+			return
+		}
+
+		val := strings.TrimSpace(string(value))
+		if val == "" {
+			return
+		}
+
+		fieldName := strings.TrimPrefix(keyStr, "col_")
+		normalized := normalizeColumnName(fieldName, columnMap)
+		if normalized == "" {
+			return
+		}
+
+		lowerVal := "%" + strings.ToLower(val) + "%"
+		query = query.Where(fmt.Sprintf("LOWER(%s) LIKE ?", normalized), lowerVal)
+	})
+	return query
 }

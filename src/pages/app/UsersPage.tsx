@@ -39,19 +39,6 @@ export default function UsersPage({}: UsersPageProps) {
         type: "password",
         minLength: 6,
       },
-      {
-        key: "role",
-        label: language({ id: "Role", en: "Role" }),
-        type: "select",
-        options: [
-          { value: "user", label: language({ id: "User", en: "User" }) },
-          {
-            value: "su",
-            label: language({ id: "Super Admin", en: "Super Admin" }),
-          },
-        ],
-        required: true,
-      },
     ],
     [language],
   );
@@ -59,6 +46,7 @@ export default function UsersPage({}: UsersPageProps) {
   const columns = useMemo<PaginationColumn<User>[]>(
     () => [
       {
+        key: "name",
         header: language({ id: "Nama", en: "Name" }),
         sort: true,
         search: "name",
@@ -75,7 +63,8 @@ export default function UsersPage({}: UsersPageProps) {
         ),
       },
       {
-        header: language({ id: "Username & Role", en: "Username & Role" }),
+        key: "username",
+        header: language({ id: "Username", en: "Username" }),
         sort: true,
         search: "username",
         render: (user) => (
@@ -83,6 +72,16 @@ export default function UsersPage({}: UsersPageProps) {
             <span className="font-mono text-sm text-dark-300">
               {user.username}
             </span>
+          </div>
+        ),
+      },
+      {
+        key: "role",
+        header: language({ id: "Role", en: "Role" }),
+        sort: true,
+        search: "role",
+        render: (user) => (
+          <div className="flex items-center gap-2">
             <Badge variant={user.role === "su" ? "default" : "secondary"}>
               {user.role?.toUpperCase()}
             </Badge>
@@ -90,7 +89,8 @@ export default function UsersPage({}: UsersPageProps) {
         ),
       },
       {
-        header: language({ id: "Status", en: "Status" }),
+        key: "is_active",
+        header: language({ id: "STATUS", en: "STATUS" }),
         strict: true,
         render: (user) => (
           <Badge variant={user.is_active ? "default" : "destructive"}>
