@@ -12,7 +12,10 @@ import (
 func UseMaintenance(c *fiber.Ctx) error {
 	// Check if maintenance mode is enabled
 	var setting model.Setting
-	if err := variable.Db.Where("key = ?", "maintenance_mode").First(&setting).Error; err != nil {
+	if err := variable.Db.
+		Where("key = ?", "maintenance_mode").
+		First(&setting).
+		Error; err != nil {
 		// If setting not found, skip maintenance check
 		return c.Next()
 	}

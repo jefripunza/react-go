@@ -9,7 +9,7 @@ export interface MasterDataItem {
   created_at: string;
 }
 
-export const masterdataService = {
+export const masterDataService = {
   getPaginate: async (params: {
     page: number;
     limit: number;

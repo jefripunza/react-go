@@ -1,4 +1,4 @@
-package masterdata
+package master_data
 
 import (
 	"github.com/gofiber/fiber/v2"

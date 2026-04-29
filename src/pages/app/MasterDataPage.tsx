@@ -17,9 +17,9 @@ import Pagination, {
   type PaginationHandle,
 } from "@/components/Pagination";
 import {
-  masterdataService,
+  masterDataService,
   type MasterDataItem,
-} from "@/services/masterdata.service";
+} from "@/services/master_data.service";
 
 interface MasterDataPageProps {}
 export default function MasterDataPage({}: MasterDataPageProps) {
@@ -69,9 +69,9 @@ export default function MasterDataPage({}: MasterDataPageProps) {
         value: value.trim(),
       };
       if (editingItem) {
-        await masterdataService.update(editingItem.id, payload);
+        await masterDataService.update(editingItem.id, payload);
       } else {
-        await masterdataService.create(payload);
+        await masterDataService.create(payload);
       }
       setDialogOpen(false);
       await paginationRef.current?.reload();
@@ -89,7 +89,7 @@ export default function MasterDataPage({}: MasterDataPageProps) {
     if (!deletingItem) return;
     setIsSubmitting(true);
     try {
-      await masterdataService.delete(deletingItem.id);
+      await masterDataService.delete(deletingItem.id);
       setDeleteDialogOpen(false);
       setDeletingItem(null);
       await paginationRef.current?.reload();
@@ -137,9 +137,7 @@ export default function MasterDataPage({}: MasterDataPageProps) {
         header: language({ id: "Kunci", en: "Key" }),
         sort: true,
         search: "key",
-        render: (item) => (
-          <span className="font-mono text-sm">{item.key}</span>
-        ),
+        render: (item) => <span className="font-mono text-sm">{item.key}</span>,
       },
       {
         header: language({ id: "Nilai", en: "Value" }),
@@ -185,11 +183,15 @@ export default function MasterDataPage({}: MasterDataPageProps) {
         ref={paginationRef}
         title={language({ id: "Daftar Data Master", en: "Master Data List" })}
         columns={columns}
-        function={masterdataService.getPaginate}
+        function={masterDataService.getPaginate}
       />
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} width="520px">
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        width="520px"
+      >
         <DialogContent onClose={() => setDialogOpen(false)}>
           <DialogHeader>
             <DialogTitle>

@@ -3,7 +3,7 @@ package modules
 import (
 	apikey "react-go/modules/apikey/model"
 	auth "react-go/modules/auth/model"
-	masterdata "react-go/modules/masterdata/model"
+	master_data "react-go/modules/master_data/model"
 	notification "react-go/modules/notification/model"
 	role "react-go/modules/role/model"
 	setting "react-go/modules/setting/model"
@@ -22,7 +22,7 @@ func Models() []interface{} {
 		&setting.Setting{},
 		&whitelist.Whitelist{},
 		&apikey.ApiKey{},
-		&masterdata.MasterData{},
+		&master_data.MasterData{},
 	}
 }
 

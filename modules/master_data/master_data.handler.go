@@ -1,9 +1,9 @@
-package masterdata
+package master_data
 
 import (
 	"react-go/dto"
 	"react-go/function"
-	model "react-go/modules/masterdata/model"
+	model "react-go/modules/master_data/model"
 	"react-go/variable"
 	"strconv"
 
