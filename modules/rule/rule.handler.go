@@ -16,8 +16,8 @@ func Set(c *fiber.Ctx) error {
 			RoleID uint   `json:"role_id" validate:"required"`
 			Key    string `json:"key" validate:"required"`
 			Action string `json:"action" validate:"required"`
-			State  *bool  `json:"state" validate:"required,bool"`
-		} `json:"data" validate:"required,gt=1,dive"`
+			State  *bool  `json:"state" validate:"required"`
+		} `json:"data" validate:"required,gt=0,dive"`
 	}
 	if err := function.RequestBody(c, &req); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
@@ -42,7 +42,7 @@ func Set(c *fiber.Ctx) error {
 
 	rows := make([]map[string]any, 0)
 	for _, item := range req.Data {
-		stateVal := true
+		stateVal := false
 		if item.State != nil {
 			stateVal = *item.State
 		}

@@ -13,7 +13,7 @@ type Rule struct {
 	RoleID uint   `json:"role_id" gorm:"type:bigint;not null;uniqueIndex:idx_role_menu_key_role_action"`
 	Key    string `json:"key" gorm:"uniqueIndex:idx_role_menu_key_role_action"`
 	Action string `json:"action" gorm:"uniqueIndex:idx_role_menu_key_role_action"` // create, read, update, delete, set
-	State  bool   `json:"state" gorm:"default:true"`
+	State  bool   `json:"state" gorm:"default:false"`
 	// relations
 	Role role.Role `json:"role" gorm:"foreignKey:RoleID;references:ID;constraint:OnDelete:CASCADE"`
 }
@@ -34,21 +34,21 @@ func (Rule) Seed(db *gorm.DB) {
 
 	if count == 0 {
 		stats := []Rule{
-			{RoleID: 1, Key: "roles", Action: "read"},
-			{RoleID: 1, Key: "roles", Action: "create"},
-			{RoleID: 1, Key: "roles", Action: "update"},
-			{RoleID: 1, Key: "roles", Action: "delete"},
-			{RoleID: 1, Key: "roles", Action: "set"},
-			{RoleID: 1, Key: "users", Action: "read"},
-			{RoleID: 1, Key: "users", Action: "create"},
-			{RoleID: 1, Key: "users", Action: "update"},
-			{RoleID: 1, Key: "users", Action: "delete"},
-			{RoleID: 1, Key: "users", Action: "set"},
-			{RoleID: 1, Key: "master-data", Action: "read"},
-			{RoleID: 1, Key: "master-data", Action: "create"},
-			{RoleID: 1, Key: "master-data", Action: "update"},
-			{RoleID: 1, Key: "master-data", Action: "delete"},
-			{RoleID: 1, Key: "master-data", Action: "set"},
+			{RoleID: 1, Key: "roles", Action: "read", State: true},
+			{RoleID: 1, Key: "roles", Action: "create", State: true},
+			{RoleID: 1, Key: "roles", Action: "update", State: true},
+			{RoleID: 1, Key: "roles", Action: "delete", State: true},
+			{RoleID: 1, Key: "roles", Action: "set", State: true},
+			{RoleID: 1, Key: "users", Action: "read", State: true},
+			{RoleID: 1, Key: "users", Action: "create", State: true},
+			{RoleID: 1, Key: "users", Action: "update", State: true},
+			{RoleID: 1, Key: "users", Action: "delete", State: true},
+			{RoleID: 1, Key: "users", Action: "set", State: true},
+			{RoleID: 1, Key: "master-data", Action: "read", State: true},
+			{RoleID: 1, Key: "master-data", Action: "create", State: true},
+			{RoleID: 1, Key: "master-data", Action: "update", State: true},
+			{RoleID: 1, Key: "master-data", Action: "delete", State: true},
+			{RoleID: 1, Key: "master-data", Action: "set", State: true},
 		}
 
 		for _, s := range stats {
