@@ -11,6 +11,7 @@ type RoleMenu struct {
 	RoleID uint   `json:"role_id" gorm:"type:bigint;not null;uniqueIndex:idx_role_menu_key_role_action"`
 	Key    string `json:"key" gorm:"uniqueIndex:idx_role_menu_key_role_action"`
 	Action string `json:"action" gorm:"uniqueIndex:idx_role_menu_key_role_action"` // create, read, update, delete, set
+	State  bool   `json:"state" gorm:"default:true"`
 	// relations
 	Role Role `json:"role" gorm:"foreignKey:RoleID;references:ID;onDelete:CASCADE"`
 }
@@ -21,6 +22,7 @@ func (s *RoleMenu) Map() map[string]any {
 		"key":     s.Key,
 		"role_id": s.RoleID,
 		"action":  s.Action,
+		"state":   s.State,
 	}
 }
 

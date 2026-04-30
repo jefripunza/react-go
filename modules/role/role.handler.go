@@ -22,7 +22,10 @@ func Create(c *fiber.Ctx) error {
 
 	// Check duplicate
 	var existing model.Role
-	if err := variable.Db.Where("name = ?", req.Name).First(&existing).Error; err == nil {
+	if err := variable.Db.
+		Where("name = ?", req.Name).
+		First(&existing).
+		Error; err == nil {
 		return dto.BadRequest(c, "Role name already exists", nil)
 	}
 
@@ -30,7 +33,9 @@ func Create(c *fiber.Ctx) error {
 		Name:        req.Name,
 		Description: req.Description,
 	}
-	if err := variable.Db.Create(&role).Error; err != nil {
+	if err := variable.Db.
+		Create(&role).
+		Error; err != nil {
 		return dto.InternalServerError(c, "Failed to create role", nil)
 	}
 
@@ -65,7 +70,9 @@ func Update(c *fiber.Ctx) error {
 	}
 
 	var role model.Role
-	if err := variable.Db.First(&role, "id = ?", id).Error; err != nil {
+	if err := variable.Db.
+		First(&role, "id = ?", id).
+		Error; err != nil {
 		return dto.NotFound(c, "Role not found", nil)
 	}
 
@@ -76,13 +83,18 @@ func Update(c *fiber.Ctx) error {
 
 	// Check duplicate name (excluding self)
 	var dup model.Role
-	if err := variable.Db.Where("name = ? AND id != ?", req.Name, id).First(&dup).Error; err == nil {
+	if err := variable.Db.
+		Where("name = ? AND id != ?", req.Name, id).
+		First(&dup).
+		Error; err == nil {
 		return dto.BadRequest(c, "Role name already exists", nil)
 	}
 
 	role.Name = req.Name
 	role.Description = req.Description
-	if err := variable.Db.Save(&role).Error; err != nil {
+	if err := variable.Db.
+		Save(&role).
+		Error; err != nil {
 		return dto.InternalServerError(c, "Failed to update role", nil)
 	}
 

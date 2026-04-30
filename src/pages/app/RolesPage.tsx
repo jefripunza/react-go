@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { Fragment, useMemo, useRef } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { useLanguageStore } from "@/stores/languageStore";
 import { formatDateTime } from "@/utils/datetime";
@@ -8,6 +8,7 @@ import Pagination, {
   type PaginationHandle,
 } from "@/components/Pagination";
 import type { Role } from "@/services/role.service";
+import { HiEllipsisVertical } from "react-icons/hi2";
 
 interface RolesPageProps {}
 export default function RolesPage({}: RolesPageProps) {
@@ -94,7 +95,17 @@ export default function RolesPage({}: RolesPageProps) {
         module="role"
         fields={fields}
         useIsActive
+        extraActions={[
+          {
+            icon: <HiEllipsisVertical className="w-4 h-4" />, // is icon menu
+            component: RoleMenu,
+          },
+        ]}
       />
     </div>
   );
 }
+
+const RoleMenu = () => {
+  return <Fragment>ok</Fragment>;
+};

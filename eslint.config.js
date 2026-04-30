@@ -23,6 +23,8 @@ export default defineConfig([
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-empty-object-type": "off",
       "no-empty-pattern": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
     },
   },
 ]);

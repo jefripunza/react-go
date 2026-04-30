@@ -8,6 +8,8 @@ import {
   useState,
   type Ref,
   type ReactNode,
+  isValidElement,
+  cloneElement,
 } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -86,12 +88,18 @@ export interface PaginationField {
   maxLength?: number;
 }
 
+export interface PaginationExtraAction<T> {
+  icon: ReactNode;
+  component: ReactNode | ((row: T, onClose: () => void) => ReactNode);
+}
+
 interface PaginationProps<T> {
   title: string;
   columns: PaginationColumn<T>[];
   module: string;
   fields?: PaginationField[];
   useIsActive?: boolean;
+  extraActions?: PaginationExtraAction<T>[];
 }
 
 export interface PaginationHandle {
@@ -99,7 +107,14 @@ export interface PaginationHandle {
 }
 
 const Pagination = forwardRef(function PaginationInner<T>(
-  { title, columns, module, fields, useIsActive }: PaginationProps<T>,
+  {
+    title,
+    columns,
+    module,
+    fields,
+    useIsActive,
+    extraActions,
+  }: PaginationProps<T>,
   ref: Ref<PaginationHandle>,
 ) {
   const { language } = useLanguageStore();
@@ -109,7 +124,9 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const [limit, setLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<string | undefined>(undefined);
-  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC" | undefined>(
+    undefined,
+  );
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -137,15 +154,27 @@ const Pagination = forwardRef(function PaginationInner<T>(
   >(null);
 
   // Per-column search state
-  const [columnSearches, setColumnSearches] = useState<Record<string, string>>({});
-  const [debouncedColumnSearches, setDebouncedColumnSearches] = useState<Record<string, string>>({});
+  const [columnSearches, setColumnSearches] = useState<Record<string, string>>(
+    {},
+  );
+  const [debouncedColumnSearches, setDebouncedColumnSearches] = useState<
+    Record<string, string>
+  >({});
 
   // Bulk select state
-  const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string | number>>(
+    new Set(),
+  );
   const selectedIdsRef = useRef(selectedIds);
   selectedIdsRef.current = selectedIds;
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+
+  // Extra Actions state
+  const [extraActionState, setExtraActionState] = useState<{
+    actionIndex: number;
+    row: T;
+  } | null>(null);
 
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
@@ -221,6 +250,16 @@ const Pagination = forwardRef(function PaginationInner<T>(
                 disabled={togglingActiveId === getRowId(row)}
               />
             )}
+            {extraActions?.map((action, idx) => (
+              <Button
+                key={`ea-${idx}`}
+                variant="ghost"
+                size="icon"
+                onClick={() => setExtraActionState({ actionIndex: idx, row })}
+              >
+                {action.icon}
+              </Button>
+            ))}
             <Button variant="ghost" size="icon" onClick={() => openEdit(row)}>
               <HiOutlinePencil size={16} />
             </Button>
@@ -300,7 +339,8 @@ const Pagination = forwardRef(function PaginationInner<T>(
     const timeoutId = window.setTimeout(() => {
       setDebouncedColumnSearches((prev) => {
         // Skip update if nothing changed (prevents extra fetch on mount)
-        if (JSON.stringify(prev) === JSON.stringify(columnSearches)) return prev;
+        if (JSON.stringify(prev) === JSON.stringify(columnSearches))
+          return prev;
         return columnSearches;
       });
     }, 500);
@@ -369,12 +409,34 @@ const Pagination = forwardRef(function PaginationInner<T>(
     if (!isMountedRef.current) {
       isMountedRef.current = true;
     }
-    fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
-  }, [currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches, fetchRows]);
+    fetchRows(
+      currentPage,
+      debouncedSearch,
+      limit,
+      sortBy,
+      sortOrder,
+      debouncedColumnSearches,
+    );
+  }, [
+    currentPage,
+    debouncedSearch,
+    limit,
+    sortBy,
+    sortOrder,
+    debouncedColumnSearches,
+    fetchRows,
+  ]);
 
   useImperativeHandle(ref, () => ({
     reload: async () => {
-      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
+      await fetchRows(
+        currentPage,
+        debouncedSearch,
+        limit,
+        sortBy,
+        sortOrder,
+        debouncedColumnSearches,
+      );
     },
   }));
 
@@ -456,7 +518,14 @@ const Pagination = forwardRef(function PaginationInner<T>(
       }
 
       setDialogOpen(false);
-      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
+      await fetchRows(
+        currentPage,
+        debouncedSearch,
+        limit,
+        sortBy,
+        sortOrder,
+        debouncedColumnSearches,
+      );
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -474,7 +543,14 @@ const Pagination = forwardRef(function PaginationInner<T>(
       await satellite.delete(removeUrl(getRowId(deletingRow)));
       setDeleteDialogOpen(false);
       setDeletingRow(null);
-      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
+      await fetchRows(
+        currentPage,
+        debouncedSearch,
+        limit,
+        sortBy,
+        sortOrder,
+        debouncedColumnSearches,
+      );
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -519,7 +595,14 @@ const Pagination = forwardRef(function PaginationInner<T>(
       });
       setBulkDeleteDialogOpen(false);
       setSelectedIds(new Set());
-      await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
+      await fetchRows(
+        currentPage,
+        debouncedSearch,
+        limit,
+        sortBy,
+        sortOrder,
+        debouncedColumnSearches,
+      );
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -547,11 +630,26 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const helpers = useMemo<PaginationHelpers<T>>(
     () => ({
       reload: async () => {
-        await fetchRows(currentPage, debouncedSearch, limit, sortBy, sortOrder, debouncedColumnSearches);
+        await fetchRows(
+          currentPage,
+          debouncedSearch,
+          limit,
+          sortBy,
+          sortOrder,
+          debouncedColumnSearches,
+        );
       },
       setRows,
     }),
-    [currentPage, debouncedSearch, debouncedColumnSearches, fetchRows, limit, sortBy, sortOrder],
+    [
+      currentPage,
+      debouncedSearch,
+      debouncedColumnSearches,
+      fetchRows,
+      limit,
+      sortBy,
+      sortOrder,
+    ],
   );
 
   const getAlignClassName = (align?: "left" | "center" | "right") => {
@@ -671,7 +769,10 @@ const Pagination = forwardRef(function PaginationInner<T>(
                               <HiOutlineChevronUp size={14} />
                             )
                           ) : (
-                            <HiOutlineChevronUp size={14} className="opacity-30" />
+                            <HiOutlineChevronUp
+                              size={14}
+                              className="opacity-30"
+                            />
                           )}
                         </span>
                       </button>
@@ -998,8 +1099,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                 en: "Are you sure you want to delete",
               })}{" "}
               <strong className="text-foreground">
-                {selectedIds.size}{" "}
-                {language({ id: "data", en: "items" })}
+                {selectedIds.size} {language({ id: "data", en: "items" })}
               </strong>
               ?{" "}
               {language({
@@ -1026,6 +1126,36 @@ const Pagination = forwardRef(function PaginationInner<T>(
           </DialogContent>
         </Dialog>
       )}
+
+      {/* ─── Extra Action Dialog ─────────────────────────────── */}
+      {extraActionState !== null &&
+        extraActions?.[extraActionState.actionIndex] && (
+          <Dialog open={true} onClose={() => {}}>
+            <DialogContent onClose={() => setExtraActionState(null)}>
+              {typeof extraActions[extraActionState.actionIndex].component ===
+              "function"
+                ? (
+                    extraActions[extraActionState.actionIndex]
+                      .component as Function
+                  )(extraActionState.row, () => setExtraActionState(null))
+                : typeof extraActions[extraActionState.actionIndex]
+                      .component === "object" &&
+                    isValidElement(
+                      extraActions[extraActionState.actionIndex].component,
+                    )
+                  ? cloneElement(
+                      extraActions[extraActionState.actionIndex]
+                        .component as React.ReactElement,
+                      {
+                        // @ts-ignore
+                        row: extraActionState.row,
+                        onClose: () => setExtraActionState(null),
+                      },
+                    )
+                  : extraActions[extraActionState.actionIndex].component}
+            </DialogContent>
+          </Dialog>
+        )}
     </>
   );
 }) as <T>(
