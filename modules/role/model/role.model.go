@@ -8,11 +8,14 @@ import (
 )
 
 type Role struct {
-	ID          uint      `json:"id" gorm:"autoIncrement;primaryKey"`
-	Name        string    `json:"name" gorm:"type:varchar(50);uniqueIndex;not null"`
-	Description string    `json:"description" gorm:"type:varchar(255)"`
-	IsActive    bool      `json:"is_active" gorm:"type:boolean;default:true"`
-	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
+	ID             uint      `json:"id" gorm:"autoIncrement;primaryKey"`
+	RoleDivisionID uint      `json:"role_division_id" gorm:"type:bigint;not null"`
+	Name           string    `json:"name" gorm:"type:varchar(50);uniqueIndex;not null"`
+	Description    string    `json:"description" gorm:"type:varchar(255)"`
+	IsActive       bool      `json:"is_active" gorm:"type:boolean;default:true"`
+	CreatedAt      time.Time `json:"created_at" gorm:"autoCreateTime"`
+	// relations
+	RoleDivision RoleDivision `json:"role_division" gorm:"foreignKey:RoleDivisionID;references:ID"`
 }
 
 func (Role) Seed(db *gorm.DB) {
@@ -21,8 +24,8 @@ func (Role) Seed(db *gorm.DB) {
 
 	if count == 0 {
 		roles := []Role{
-			{ID: 1, Name: "Admin", Description: "Full access"},
-			{ID: 2, Name: "Operator", Description: "Limited access"},
+			{ID: 1, RoleDivisionID: 1, Name: "Admin", Description: "Full access"},
+			{ID: 2, RoleDivisionID: 1, Name: "Operator", Description: "Limited access"},
 		}
 
 		for _, r := range roles {

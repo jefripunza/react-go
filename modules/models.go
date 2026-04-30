@@ -6,7 +6,7 @@ import (
 	master_data "react-go/modules/master_data/model"
 	notification "react-go/modules/notification/model"
 	role "react-go/modules/role/model"
-	role_menu "react-go/modules/role/model"
+	rule "react-go/modules/rule/model"
 	setting "react-go/modules/setting/model"
 	user "react-go/modules/user/model"
 	whitelist "react-go/modules/whitelist/model"
@@ -18,8 +18,9 @@ func Models() []interface{} {
 	return []interface{}{
 		&auth.Access{},
 		&user.User{},
+		&role.RoleDivision{},
 		&role.Role{},
-		&role_menu.RoleMenu{},
+		&rule.Rule{},
 		&notification.Notification{},
 		&setting.Setting{},
 		&whitelist.Whitelist{},

@@ -3,35 +3,36 @@ package model
 import (
 	"log"
 
+	role "react-go/modules/role/model"
+
 	"gorm.io/gorm"
 )
 
-type RoleMenu struct {
+type Rule struct {
 	ID     uint   `json:"id" gorm:"autoIncrement;primaryKey"`
 	RoleID uint   `json:"role_id" gorm:"type:bigint;not null;uniqueIndex:idx_role_menu_key_role_action"`
 	Key    string `json:"key" gorm:"uniqueIndex:idx_role_menu_key_role_action"`
 	Action string `json:"action" gorm:"uniqueIndex:idx_role_menu_key_role_action"` // create, read, update, delete, set
 	State  bool   `json:"state" gorm:"default:true"`
 	// relations
-	Role Role `json:"role" gorm:"foreignKey:RoleID;references:ID;onDelete:CASCADE"`
+	Role role.Role `json:"role" gorm:"foreignKey:RoleID;references:ID;onDelete:CASCADE"`
 }
 
-func (s *RoleMenu) Map() map[string]any {
+func (s *Rule) Map() map[string]any {
 	return map[string]any{
-		"id":      s.ID,
-		"key":     s.Key,
-		"role_id": s.RoleID,
-		"action":  s.Action,
-		"state":   s.State,
+		"id":     s.ID,
+		"key":    s.Key,
+		"action": s.Action,
+		"state":  s.State,
 	}
 }
 
-func (RoleMenu) Seed(db *gorm.DB) {
+func (Rule) Seed(db *gorm.DB) {
 	var count int64
-	db.Model(&RoleMenu{}).Count(&count)
+	db.Model(&Rule{}).Count(&count)
 
 	if count == 0 {
-		stats := []RoleMenu{
+		stats := []Rule{
 			{RoleID: 1, Key: "role", Action: "read"},
 			{RoleID: 1, Key: "role", Action: "create"},
 			{RoleID: 1, Key: "role", Action: "update"},

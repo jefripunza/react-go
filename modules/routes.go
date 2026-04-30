@@ -9,6 +9,7 @@ import (
 	"react-go/modules/master_data"
 	"react-go/modules/notification"
 	"react-go/modules/role"
+	"react-go/modules/rule"
 	"react-go/modules/setting"
 	"react-go/modules/user"
 	"react-go/modules/whitelist"
@@ -29,6 +30,9 @@ func SetupRoutes(app *fiber.App, api fiber.Router) {
 
 	// Role
 	role.ProtectedRoute(api.Group("/role", middlewares.UseToken))
+
+	// Rule
+	rule.ProtectedRoute(api.Group("/rule", middlewares.UseToken))
 
 	// Master Data
 	master_data.ProtectedRoute(api.Group("/master-data", middlewares.UseToken))

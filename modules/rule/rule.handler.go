@@ -1,15 +1,16 @@
-package role
+package rule
 
 import (
 	"react-go/dto"
 	"react-go/function"
-	model "react-go/modules/role/model"
+	role "react-go/modules/role/model"
+	model "react-go/modules/rule/model"
 	"react-go/variable"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func RoleMenuSet(c *fiber.Ctx) error {
+func Set(c *fiber.Ctx) error {
 	var req struct {
 		Data []struct {
 			RoleID uint   `json:"role_id" validate:"required"`
@@ -29,13 +30,13 @@ func RoleMenuSet(c *fiber.Ctx) error {
 	for _, item := range req.Data {
 		roleIDs = append(roleIDs, item.RoleID)
 	}
-	role := make([]model.Role, 0)
+	roles := make([]role.Role, 0)
 	if err := variable.Db.
-		Find(&role, "id IN ? AND is_active = ?", roleIDs, true).
+		Find(&roles, "id IN ? AND is_active = ?", roleIDs, true).
 		Error; err != nil {
 		return dto.NotFound(c, "Role not found", nil)
 	}
-	if len(role) == 0 {
+	if len(roles) == 0 {
 		return dto.BadRequest(c, "No active roles found", nil)
 	}
 
@@ -45,7 +46,7 @@ func RoleMenuSet(c *fiber.Ctx) error {
 		if item.State != nil {
 			stateVal = *item.State
 		}
-		var existing model.RoleMenu
+		var existing model.Rule
 		err := variable.Db.
 			Where("role_id = ? AND key = ? AND action = ?", item.RoleID, item.Key, item.Action).
 			First(&existing).
@@ -59,7 +60,7 @@ func RoleMenuSet(c *fiber.Ctx) error {
 			rows = append(rows, existing.Map())
 		} else {
 			// Not found, insert new with default state true if not specified
-			roleMenu := model.RoleMenu{
+			roleMenu := model.Rule{
 				RoleID: item.RoleID,
 				Key:    item.Key,
 				Action: item.Action,
@@ -77,10 +78,10 @@ func RoleMenuSet(c *fiber.Ctx) error {
 	})
 }
 
-func RoleMenuList(c *fiber.Ctx) error {
-	roleMenus := make([]model.RoleMenu, 0)
+func List(c *fiber.Ctx) error {
+	roleMenus := make([]model.Rule, 0)
 	if err := variable.Db.
-		Model(&model.RoleMenu{}).
+		Model(&model.Rule{}).
 		Find(&roleMenus).
 		Error; err != nil {
 		return dto.InternalServerError(c, "Failed to find role menus", nil)
