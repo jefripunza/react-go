@@ -15,7 +15,7 @@ type Rule struct {
 	Action string `json:"action" gorm:"uniqueIndex:idx_role_menu_key_role_action"` // create, read, update, delete, set
 	State  bool   `json:"state" gorm:"default:true"`
 	// relations
-	Role role.Role `json:"role" gorm:"foreignKey:RoleID;references:ID;onDelete:CASCADE"`
+	Role role.Role `json:"role" gorm:"foreignKey:RoleID;references:ID;constraint:OnDelete:CASCADE"`
 }
 
 func (s *Rule) Map() map[string]any {
@@ -34,18 +34,21 @@ func (Rule) Seed(db *gorm.DB) {
 
 	if count == 0 {
 		stats := []Rule{
-			{RoleID: 1, Key: "role", Action: "read"},
-			{RoleID: 1, Key: "role", Action: "create"},
-			{RoleID: 1, Key: "role", Action: "update"},
-			{RoleID: 1, Key: "role", Action: "delete"},
-			{RoleID: 1, Key: "user", Action: "read"},
-			{RoleID: 1, Key: "user", Action: "create"},
-			{RoleID: 1, Key: "user", Action: "update"},
-			{RoleID: 1, Key: "user", Action: "delete"},
-			{RoleID: 1, Key: "master_data", Action: "read"},
-			{RoleID: 1, Key: "master_data", Action: "create"},
-			{RoleID: 1, Key: "master_data", Action: "update"},
-			{RoleID: 1, Key: "master_data", Action: "delete"},
+			{RoleID: 1, Key: "roles", Action: "read"},
+			{RoleID: 1, Key: "roles", Action: "create"},
+			{RoleID: 1, Key: "roles", Action: "update"},
+			{RoleID: 1, Key: "roles", Action: "delete"},
+			{RoleID: 1, Key: "roles", Action: "set"},
+			{RoleID: 1, Key: "users", Action: "read"},
+			{RoleID: 1, Key: "users", Action: "create"},
+			{RoleID: 1, Key: "users", Action: "update"},
+			{RoleID: 1, Key: "users", Action: "delete"},
+			{RoleID: 1, Key: "users", Action: "set"},
+			{RoleID: 1, Key: "master-data", Action: "read"},
+			{RoleID: 1, Key: "master-data", Action: "create"},
+			{RoleID: 1, Key: "master-data", Action: "update"},
+			{RoleID: 1, Key: "master-data", Action: "delete"},
+			{RoleID: 1, Key: "master-data", Action: "set"},
 		}
 
 		for _, s := range stats {

@@ -7,6 +7,6 @@ import (
 )
 
 func ProtectedRoute(r fiber.Router) {
-	r.Post("/set", middlewares.UseRoleMenu("rule", "set"), Set)
-	r.Get("/list", middlewares.UseRoleMenu("rule", "read"), List)
+	r.Post("/set", middlewares.UseRoleMenu("roles", "set"), Set)
+	r.Get("/list", middlewares.UseRoleMenu("roles", "read"), List)
 }

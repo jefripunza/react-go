@@ -4,6 +4,7 @@ import (
 	"react-go/dto"
 	"react-go/function"
 	model "react-go/modules/role/model"
+	rule "react-go/modules/rule/model"
 	user "react-go/modules/user/model"
 	"react-go/variable"
 	"strconv"
@@ -182,6 +183,11 @@ func Delete(c *fiber.Ctx) error {
 		return dto.NotFound(c, "Role not found", nil)
 	}
 
+	// Cascade: delete rules for this role
+	variable.Db.
+		Where("role_id = ?", id).
+		Delete(&rule.Rule{})
+
 	if err := variable.Db.
 		Delete(&role).
 		Error; err != nil {
@@ -243,6 +249,11 @@ func BulkDelete(c *fiber.Ctx) error {
 	if len(req.IDs) == 0 {
 		return dto.BadRequest(c, "No IDs provided", nil)
 	}
+
+	// Cascade: delete rules for these roles
+	variable.Db.
+		Where("role_id IN ?", req.IDs).
+		Delete(&rule.Rule{})
 
 	if err := variable.Db.
 		Delete(&model.Role{}, "id IN ?", req.IDs).
