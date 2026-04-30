@@ -15,7 +15,7 @@ type Role struct {
 	IsActive       bool      `json:"is_active" gorm:"type:boolean;default:true"`
 	CreatedAt      time.Time `json:"created_at" gorm:"autoCreateTime"`
 	// relations
-	RoleDivision RoleDivision `json:"role_division" gorm:"foreignKey:RoleDivisionID;references:ID"`
+	RoleDivision RoleDivision `json:"role_division" gorm:"foreignKey:RoleDivisionID;references:ID;constraint:OnDelete:CASCADE"`
 }
 
 func (Role) Seed(db *gorm.DB) {

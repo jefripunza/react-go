@@ -31,6 +31,8 @@ func Models() []interface{} {
 
 func SeedAll(db *gorm.DB) {
 	user.User{}.Seed(db)
-	role.Role{}.Seed(db)
 	setting.Setting{}.Seed(db)
+	role.RoleDivision{}.Seed(db)
+	role.Role{}.Seed(db)
+	rule.Rule{}.Seed(db)
 }

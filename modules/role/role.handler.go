@@ -11,13 +11,80 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func GetAll(c *fiber.Ctx) error {
+	divisions := make([]model.RoleDivision, 0)
+	if err := variable.Db.
+		Order("name ASC").
+		Find(&divisions).
+		Error; err != nil {
+		return dto.InternalServerError(c, "Failed to fetch divisions", nil)
+	}
+
+	roles := make([]model.Role, 0)
+	if err := variable.Db.
+		Order("name ASC").
+		Find(&roles).
+		Error; err != nil {
+		return dto.InternalServerError(c, "Failed to fetch roles", nil)
+	}
+
+	type RoleItem struct {
+		ID          uint   `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		IsActive    bool   `json:"is_active"`
+	}
+	type DivisionGroup struct {
+		ID          uint       `json:"id"`
+		Name        string     `json:"name"`
+		Description string     `json:"description"`
+		IsActive    bool       `json:"is_active"`
+		Roles       []RoleItem `json:"roles"`
+	}
+
+	grouped := make([]DivisionGroup, 0, len(divisions))
+	for _, d := range divisions {
+		group := DivisionGroup{
+			ID:          d.ID,
+			Name:        d.Name,
+			Description: d.Description,
+			IsActive:    d.IsActive,
+			Roles:       make([]RoleItem, 0),
+		}
+		for _, r := range roles {
+			if r.RoleDivisionID == d.ID {
+				group.Roles = append(group.Roles, RoleItem{
+					ID:          r.ID,
+					Name:        r.Name,
+					Description: r.Description,
+					IsActive:    r.IsActive,
+				})
+			}
+		}
+		grouped = append(grouped, group)
+	}
+
+	return dto.OK(c, "Success", fiber.Map{
+		"divisions": grouped,
+	})
+}
+
 func Create(c *fiber.Ctx) error {
 	var req struct {
-		Name        string `json:"name" validate:"required"`
-		Description string `json:"description"`
+		RoleDivisionID uint   `json:"role_division_id" validate:"required"`
+		Name           string `json:"name" validate:"required"`
+		Description    string `json:"description"`
 	}
 	if err := function.RequestBody(c, &req); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
+	}
+
+	// Check division exists
+	var division model.RoleDivision
+	if err := variable.Db.
+		First(&division, "id = ?", req.RoleDivisionID).
+		Error; err != nil {
+		return dto.NotFound(c, "Division not found", nil)
 	}
 
 	// Check duplicate
@@ -30,8 +97,9 @@ func Create(c *fiber.Ctx) error {
 	}
 
 	role := model.Role{
-		Name:        req.Name,
-		Description: req.Description,
+		RoleDivisionID: req.RoleDivisionID,
+		Name:           req.Name,
+		Description:    req.Description,
 	}
 	if err := variable.Db.
 		Create(&role).

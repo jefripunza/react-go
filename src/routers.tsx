@@ -33,7 +33,7 @@ import DocPage from "@/pages/DocPage";
 import ErrorBoundaryPage from "@/pages/error/ErrorBoundaryPage";
 import NotFoundPage from "@/pages/error/NotFoundPage";
 
-const sidebarLinks: ISidebarLink[] = [
+export const sidebarLinks: ISidebarLink[] = [
   {
     label: { id: "Dashboard", en: "Dashboard" },
     path: "dashboard",

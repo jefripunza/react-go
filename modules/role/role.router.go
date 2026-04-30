@@ -7,7 +7,11 @@ import (
 )
 
 func ProtectedRoute(r fiber.Router) {
+	// division
+	r.Post("/division/create", middlewares.UseRoleMenu("role", "create"), DivisionCreate)
+
 	// role
+	r.Get("/all", middlewares.UseRoleMenu("role", "read"), GetAll)
 	r.Post("/create", middlewares.UseRoleMenu("role", "create"), Create)
 	r.Get("/paginate", middlewares.UseRoleMenu("role", "read"), GetPaginate)
 	r.Put("/edit/:id", middlewares.UseRoleMenu("role", "update"), Update)
