@@ -39,6 +39,7 @@ func (s *User) Map() map[string]any {
 		"name":       s.Name,
 		"avatar":     s.Avatar,
 		"username":   s.Username,
+		"role":       s.Role,
 		"is_active":  s.IsActive,
 		"created_at": s.CreatedAt,
 	}

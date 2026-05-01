@@ -9,6 +9,7 @@ import (
 	"react-go/environment"
 	"react-go/function"
 	"react-go/function/hash"
+	role "react-go/modules/role/model"
 	model "react-go/modules/user/model"
 	"react-go/variable"
 
@@ -42,6 +43,31 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 		return nil, fmt.Errorf("invalid token")
 	}
 	return claims, nil
+}
+
+func getUserMapWithRoles(user model.User) map[string]any {
+	var roleUsers []role.RoleUser
+	variable.Db.Where("user_id = ?", user.ID).Find(&roleUsers)
+	var roleIds []uint
+	for _, ru := range roleUsers {
+		roleIds = append(roleIds, ru.RoleID)
+	}
+	var roles []role.Role
+	if len(roleIds) > 0 {
+		variable.Db.Where("id IN ?", roleIds).Find(&roles)
+	}
+	
+	userMap := user.Map()
+	userRoles := make([]map[string]any, 0)
+	for _, r := range roles {
+		userRoles = append(userRoles, map[string]any{
+			"division_id": fmt.Sprintf("%v", r.RoleDivisionID),
+			"role_id":     fmt.Sprintf("%v", r.ID),
+			"role_name":   r.Name,
+		})
+	}
+	userMap["roles"] = userRoles
+	return userMap
 }
 
 func Login(c *fiber.Ctx) error {
@@ -81,7 +107,7 @@ func Login(c *fiber.Ctx) error {
 
 	return dto.OK(c, "Login success", fiber.Map{
 		"token": token,
-		"user":  user.Map(),
+		"user":  getUserMapWithRoles(user),
 	})
 }
 
@@ -101,6 +127,6 @@ func Validate(c *fiber.Ctx) error {
 	}
 
 	return dto.OK(c, "Token valid", fiber.Map{
-		"user": user.Map(),
+		"user": getUserMapWithRoles(user),
 	})
 }

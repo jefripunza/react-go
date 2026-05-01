@@ -5,9 +5,10 @@ import {
   type IndexRouteObject,
   Link,
 } from "react-router";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useSidebarStore } from "@/stores/sidebarStore";
+import { useRuleStore } from "@/stores/ruleStore";
 import {
   RiLogoutBoxLine,
   RiMenuLine,
@@ -44,7 +45,21 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
   const location = useLocation();
   const { language } = useLanguageStore();
 
-  const { isLoading, validateToken, logout } = useAuthStore();
+  const { isLoading, validateToken, logout, user } = useAuthStore();
+  const { role_selected } = useRuleStore();
+
+  const displayRole = useMemo(() => {
+    if (!user) return "";
+    if (user.role === "su") return "Super Admin";
+    if (user.role === "user" || user.role === "client") {
+      if (role_selected) {
+        const found = user.roles?.find((r) => r.role_id === String(role_selected));
+        return found ? found.role_name : "No Role";
+      }
+      return "No Role Selected";
+    }
+    return user.role;
+  }, [user, role_selected]);
   const {
     isCollapsed,
     isMobileOpen,
@@ -196,6 +211,17 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
 
         {/* Sidebar Footer */}
         <div className="border-t border-dark-600/50 p-3 space-y-1 shrink-0">
+          {/* User Info */}
+          {(!effectiveCollapsed || isMobileOpen) && user && (
+            <div className="px-3 py-2 mb-2 bg-dark-800/40 rounded-xl border border-dark-600/30">
+              <p className="text-sm font-medium text-foreground truncate">
+                {user.name}
+              </p>
+              <p className="text-xs text-dark-400 truncate mt-0.5">
+                {displayRole}
+              </p>
+            </div>
+          )}
           {/* Settings */}
           <Link
             to="/app/settings"
