@@ -11,7 +11,7 @@ import type { MasterDataItem } from "@/services/master_data.service";
 interface MasterDataPageProps {}
 export default function MasterDataPage({}: MasterDataPageProps) {
   const paginationRef = useRef<PaginationHandle>(null);
-  const { language } = useLanguageStore();
+  const { languageCode, language } = useLanguageStore();
 
   const fields = useMemo<PaginationField[]>(
     () => [
@@ -33,7 +33,8 @@ export default function MasterDataPage({}: MasterDataPageProps) {
         type: "text",
       },
     ],
-    [language],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [languageCode, language],
   );
 
   const columns = useMemo<PaginationColumn<MasterDataItem>[]>(
@@ -71,7 +72,8 @@ export default function MasterDataPage({}: MasterDataPageProps) {
         render: (item) => formatDateTime(item.created_at),
       },
     ],
-    [language],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [languageCode, language],
   );
 
   return (

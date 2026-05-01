@@ -121,6 +121,7 @@ function DynamicSelect({
   const [opts, setOpts] = useState<PaginationFieldOption[]>([]);
   const [disabled, setDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { language } = useLanguageStore();
 
   const onChangeRef = useRef(onChange);
   useEffect(() => {
@@ -201,7 +202,7 @@ function DynamicSelect({
       disabled={disabled || loading}
     >
       <option value="" disabled hidden>
-        {loading ? "Loading..." : "Pilih..."}
+        {loading ? "Loading..." : language({ id: "Pilih...", en: "Choose..." })}
       </option>
       {opts.map((opt) => (
         <option key={opt.value} value={opt.value}>
@@ -228,9 +229,10 @@ function DebouncedInput({
   const { language } = useLanguageStore();
   const value = formData[field.key] ?? "";
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<{ text: string; isError: boolean } | null>(
-    null,
-  );
+  const [msg, setMsg] = useState<{
+    text: Record<string, string>;
+    isError: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!field.debounce || !value || value === initialValue) {
@@ -245,27 +247,29 @@ function DebouncedInput({
     const timer = setTimeout(() => {
       setLoading(true);
       satellite
-        .post(`/api/debounce/${field.debounce}`, { value })
+        .post<{
+          message: string;
+          data: { available: boolean; message: Record<string, string> };
+        }>(`/api/debounce/${field.debounce}`, { value })
         .then((res) => {
           const data = res.data?.data;
-          
-          let textMsg = "";
-          if (data?.message && typeof data.message === "object") {
-            textMsg = language(data.message);
-          } else {
-            textMsg = res.data?.message || "";
-          }
 
           if (data && data.available === false) {
-            setMsg({ text: textMsg || "Not available", isError: true });
-            onError(field.key, textMsg || "Not available");
+            setMsg({ text: data.message, isError: true });
+            onError(field.key, res.data.message);
           } else {
-            setMsg({ text: textMsg || "Available", isError: false });
+            setMsg({ text: data.message, isError: false });
             onError(field.key, null);
           }
         })
         .catch(() => {
-          setMsg({ text: "Error checking availability", isError: true });
+          setMsg({
+            text: {
+              id: "Terjadi kesalahan saat memeriksa ketersediaan",
+              en: "Error checking availability",
+            },
+            isError: true,
+          });
           onError(field.key, "Error");
         })
         .finally(() => {
@@ -321,7 +325,7 @@ function DebouncedInput({
             msg.isError ? "text-neon-red" : "text-neon-green"
           }`}
         >
-          {msg.text}
+          {language(msg.text)}
         </span>
       )}
     </div>
@@ -1248,7 +1252,11 @@ const Pagination = forwardRef(function PaginationInner<T>(
                       }
                       initialValue={
                         editingRow && typeof editingRow === "object"
-                          ? String((editingRow as Record<string, unknown>)[field.key] ?? "")
+                          ? String(
+                              (editingRow as Record<string, unknown>)[
+                                field.key
+                              ] ?? "",
+                            )
                           : ""
                       }
                     />

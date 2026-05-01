@@ -13,7 +13,7 @@ import BlankUser from "@/assets/blank-user.svg";
 interface UsersPageProps {}
 export default function UsersPage({}: UsersPageProps) {
   const paginationRef = useRef<PaginationHandle>(null);
-  const { language } = useLanguageStore();
+  const { languageCode, language } = useLanguageStore();
 
   const fields = useMemo<PaginationField[]>(
     () => [
@@ -43,7 +43,7 @@ export default function UsersPage({}: UsersPageProps) {
       },
       {
         key: "division_id",
-        label: language({ id: "Role Division", en: "Role Division" }),
+        label: language({ id: "Role Divisi", en: "Role Division" }),
         type: "select",
         required: true,
         col: 6,
@@ -51,7 +51,7 @@ export default function UsersPage({}: UsersPageProps) {
       },
       {
         key: "role_id",
-        label: language({ id: "Role", en: "Role" }),
+        label: language({ id: "Jabatan", en: "Role" }),
         type: "select",
         required: true,
         col: 6,
@@ -59,7 +59,8 @@ export default function UsersPage({}: UsersPageProps) {
         options: "roles/{division_id}",
       },
     ],
-    [language],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [languageCode, language],
   );
 
   const columns = useMemo<PaginationColumn<User>[]>(
@@ -120,7 +121,8 @@ export default function UsersPage({}: UsersPageProps) {
         ),
       },
     ],
-    [language],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [languageCode, language],
   );
 
   return (
