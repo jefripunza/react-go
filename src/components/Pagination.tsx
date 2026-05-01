@@ -88,6 +88,7 @@ export interface PaginationField {
   maxLength?: number;
   col?: number;
   ref?: string;
+  debounce?: string;
 }
 
 export interface PaginationExtraAction<T> {
@@ -211,6 +212,100 @@ function DynamicSelect({
   );
 }
 
+function DebouncedInput({
+  field,
+  formData,
+  onChange,
+  onError,
+  initialValue,
+}: {
+  field: PaginationField;
+  formData: Record<string, string>;
+  onChange: (val: string) => void;
+  onError: (key: string, error: string | null) => void;
+  initialValue?: string;
+}) {
+  const { language } = useLanguageStore();
+  const value = formData[field.key] ?? "";
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<{ text: string; isError: boolean } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!field.debounce || !value || value === initialValue) {
+      setMsg(null);
+      onError(field.key, null);
+      return;
+    }
+
+    setMsg(null);
+    onError(field.key, "typing"); // block save while typing/debouncing
+
+    const timer = setTimeout(() => {
+      setLoading(true);
+      satellite
+        .post(`/api/debounce/${field.debounce}`, { value })
+        .then((res) => {
+          const data = res.data?.data;
+          
+          let textMsg = "";
+          if (data?.message && typeof data.message === "object") {
+            textMsg = language(data.message);
+          } else {
+            textMsg = res.data?.message || "";
+          }
+
+          if (data && data.available === false) {
+            setMsg({ text: textMsg || "Not available", isError: true });
+            onError(field.key, textMsg || "Not available");
+          } else {
+            setMsg({ text: textMsg || "Available", isError: false });
+            onError(field.key, null);
+          }
+        })
+        .catch(() => {
+          setMsg({ text: "Error checking availability", isError: true });
+          onError(field.key, "Error");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }, 3000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, field.debounce, field.key, initialValue, language]);
+
+  return (
+    <div className="relative">
+      <Input
+        id={`field-${field.key}`}
+        type={field.type}
+        className="mt-1.5"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        minLength={field.minLength}
+        maxLength={field.maxLength}
+      />
+      {loading && (
+        <span className="text-xs text-dark-400 mt-1 block">Checking...</span>
+      )}
+      {!loading && msg && (
+        <span
+          className={`text-xs mt-1 block ${
+            msg.isError ? "text-neon-red" : "text-neon-green"
+          }`}
+        >
+          {msg.text}
+        </span>
+      )}
+    </div>
+  );
+}
+
 const Pagination = forwardRef(function PaginationInner<T>(
   {
     title,
@@ -253,6 +348,9 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const [editingRow, setEditingRow] = useState<T | null>(null);
   const [deletingRow, setDeletingRow] = useState<T | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>(
+    {},
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [togglingActiveId, setTogglingActiveId] = useState<
     string | number | null
@@ -575,12 +673,14 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const openCreate = () => {
     setEditingRow(null);
     setFormData(initFormData());
+    setFieldErrors({});
     setDialogOpen(true);
   };
 
   const openEdit = (row: T) => {
     setEditingRow(row);
     setFormData(initFormData(row));
+    setFieldErrors({});
     setDialogOpen(true);
   };
 
@@ -606,9 +706,10 @@ const Pagination = forwardRef(function PaginationInner<T>(
       if (field.required && !val.trim()) return false;
       if (field.minLength && val.length < field.minLength) return false;
       if (field.maxLength && val.length > field.maxLength) return false;
+      if (fieldErrors[field.key]) return false;
     }
     return true;
-  }, [fields, formData]);
+  }, [fields, formData, fieldErrors]);
 
   const handleSave = async () => {
     if (!isFormValid()) return;
@@ -1112,6 +1213,22 @@ const Pagination = forwardRef(function PaginationInner<T>(
                       }
                       minLength={field.minLength}
                       maxLength={field.maxLength}
+                    />
+                  ) : field.debounce ? (
+                    <DebouncedInput
+                      field={field}
+                      formData={formData}
+                      onChange={(val) =>
+                        setFormData((prev) => ({ ...prev, [field.key]: val }))
+                      }
+                      onError={(key, err) =>
+                        setFieldErrors((prev) => ({ ...prev, [key]: err }))
+                      }
+                      initialValue={
+                        editingRow && typeof editingRow === "object"
+                          ? String((editingRow as Record<string, unknown>)[field.key] ?? "")
+                          : ""
+                      }
                     />
                   ) : (
                     <Input

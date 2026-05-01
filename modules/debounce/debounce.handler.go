@@ -24,9 +24,17 @@ func Username(c *fiber.Ctx) error {
 		Error; err == nil {
 		return dto.OK(c, "Username not available", fiber.Map{
 			"available": false,
+			"message": fiber.Map{
+				"id": "Username sudah digunakan",
+				"en": "Username already used",
+			},
 		})
 	}
 	return dto.OK(c, "Username available", fiber.Map{
 		"available": true,
+		"message": fiber.Map{
+			"id": "Username tersedia",
+			"en": "Username available",
+		},
 	})
 }
