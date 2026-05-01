@@ -53,7 +53,9 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
     if (user.role === "su") return "Super Admin";
     if (user.role === "user" || user.role === "client") {
       if (role_selected) {
-        const found = user.roles?.find((r) => r.role_id === role_selected.role_id);
+        const found = user.roles?.find(
+          (r) => r.role_id === role_selected.role_id,
+        );
         return found ? found.role_name : "No Role";
       }
       return "No Role Selected";
@@ -231,6 +233,7 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
               </p>
             </div>
           )}
+
           {/* Settings */}
           <Link
             to="/app/settings"
