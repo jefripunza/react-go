@@ -30,14 +30,14 @@ func SetupRoutes(app *fiber.App, api fiber.Router) {
 	// User
 	user.ProtectedRoute(api.Group("/user", middlewares.UseToken))
 
+	// Setting
+	setting.ProtectedRoute(api.Group("/setting", middlewares.UseToken))
+
 	// Role
 	role.ProtectedRoute(api.Group("/role", middlewares.UseToken))
 
 	// Rule
 	rule.ProtectedRoute(api.Group("/rule", middlewares.UseToken))
-
-	// Master Data
-	master_data.ProtectedRoute(api.Group("/master-data", middlewares.UseToken))
 
 	// Notification
 	notification.ProtectedRoute(api.Group("/notification", middlewares.UseToken))
@@ -48,11 +48,11 @@ func SetupRoutes(app *fiber.App, api fiber.Router) {
 	// API Key
 	apikey.ProtectedRoute(api.Group("/apikey", middlewares.UseToken))
 
-	// Setting
-	setting.ProtectedRoute(api.Group("/setting", middlewares.UseToken))
-
 	// Dashboard
 	dashboard.ProtectedRoute(api.Group("/dashboard", middlewares.UseToken))
+
+	// Master Data
+	master_data.ProtectedRoute(api.Group("/master-data", middlewares.UseToken))
 
 	// Option
 	option.PublicRoute(api.Group("/option"))
