@@ -81,7 +81,14 @@ export interface PaginationFieldOption {
 export interface PaginationField {
   key: string;
   label: string;
-  type: "text" | "email" | "number" | "password" | "select" | "textarea";
+  type:
+    | "text"
+    | "email"
+    | "number"
+    | "password"
+    | "select"
+    | "textarea"
+    | "array";
   options?: PaginationFieldOption[] | string;
   required?: boolean;
   minLength?: number;
@@ -89,6 +96,7 @@ export interface PaginationField {
   col?: number;
   ref?: string;
   debounce?: string;
+  children?: PaginationField[];
 }
 
 export interface PaginationExtraAction<T> {
@@ -210,6 +218,129 @@ function DynamicSelect({
         </option>
       ))}
     </Select>
+  );
+}
+
+function ArrayField({
+  field,
+  value,
+  onChange,
+}: {
+  field: PaginationField;
+  value: Record<string, unknown>[];
+  onChange: (val: Record<string, unknown>[]) => void;
+}) {
+  const { language } = useLanguageStore();
+  const handleAdd = () => {
+    const newItem: Record<string, unknown> = {};
+    if (field.children) {
+      field.children.forEach((child) => {
+        if (
+          child.type === "select" &&
+          Array.isArray(child.options) &&
+          child.options.length > 0
+        ) {
+          newItem[child.key] = child.options[0].value;
+        } else {
+          newItem[child.key] = "";
+        }
+      });
+    }
+    onChange([...value, newItem]);
+  };
+
+  const handleRemove = (index: number) => {
+    const next = [...value];
+    next.splice(index, 1);
+    onChange(next);
+  };
+
+  const handleChildChange = (
+    index: number,
+    childKey: string,
+    childVal: unknown,
+  ) => {
+    const next = [...value];
+    next[index] = { ...next[index], [childKey]: childVal };
+    onChange(next);
+  };
+
+  return (
+    <div className="mt-2 space-y-4">
+      {value.map((item, index) => (
+        <div
+          key={index}
+          className="relative p-4 border border-dark-600 rounded-xl bg-dark-900/40"
+        >
+          <button
+            type="button"
+            onClick={() => handleRemove(index)}
+            className="absolute top-2 right-2 p-1.5 rounded-lg text-dark-400 hover:text-neon-red hover:bg-neon-red/10 transition-colors"
+          >
+            <HiOutlineTrash className="w-4 h-4" />
+          </button>
+          <div className="grid grid-cols-12 gap-4 mt-2">
+            {field.children?.map((child) => (
+              <div
+                key={child.key}
+                style={{
+                  gridColumn: `span ${child.col || 12} / span ${
+                    child.col || 12
+                  }`,
+                }}
+              >
+                <Label
+                  htmlFor={`field-${field.key}-${index}-${child.key}`}
+                  required={child.required}
+                >
+                  {child.label}
+                </Label>
+                {child.type === "select" ? (
+                  <DynamicSelect
+                    field={child}
+                    formData={item as Record<string, string>}
+                    onChange={(val) => handleChildChange(index, child.key, val)}
+                  />
+                ) : child.type === "textarea" ? (
+                  <textarea
+                    id={`field-${field.key}-${index}-${child.key}`}
+                    className="mt-1.5 w-full px-4 py-2.5 bg-dark-900/60 border border-dark-500/50 rounded-xl text-foreground placeholder-dark-400 focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/30 transition-all font-mono text-sm disabled:opacity-50 min-h-[80px] resize-y"
+                    value={String(item[child.key] ?? "")}
+                    onChange={(e) =>
+                      handleChildChange(index, child.key, e.target.value)
+                    }
+                    minLength={child.minLength}
+                    maxLength={child.maxLength}
+                  />
+                ) : (
+                  <Input
+                    id={`field-${field.key}-${index}-${child.key}`}
+                    type={child.type}
+                    className="mt-1.5"
+                    value={String(item[child.key] ?? "")}
+                    onChange={(e) =>
+                      handleChildChange(index, child.key, e.target.value)
+                    }
+                    minLength={child.minLength}
+                    maxLength={child.maxLength}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={handleAdd}
+        className="w-full flex items-center justify-center gap-2 border-dashed border-dark-500 text-dark-300 hover:text-foreground"
+      >
+        <HiOutlinePlus className="w-4 h-4" />
+        {language({ id: "Tambah", en: "Add" })} {field.label}
+      </Button>
+    </div>
   );
 }
 
@@ -373,7 +504,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<T | null>(null);
   const [deletingRow, setDeletingRow] = useState<T | null>(null);
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>(
     {},
   );
@@ -662,13 +793,19 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const initFormData = useCallback(
     (row?: T) => {
       if (!fields) return {};
-      const data: Record<string, string> = {};
+      const data: Record<string, unknown> = {};
       for (const field of fields) {
         if (row && typeof row === "object" && row !== null) {
           const val = (row as Record<string, unknown>)[field.key];
-          data[field.key] = val != null ? String(val) : "";
+          if (field.type === "array") {
+            data[field.key] = Array.isArray(val) ? val : [];
+          } else {
+            data[field.key] = val != null ? String(val) : "";
+          }
         } else {
-          if (
+          if (field.type === "array") {
+            data[field.key] = [];
+          } else if (
             field.type === "select" &&
             Array.isArray(field.options) &&
             field.options.length > 0
@@ -716,10 +853,25 @@ const Pagination = forwardRef(function PaginationInner<T>(
   const isFormValid = useCallback(() => {
     if (!fields) return false;
     for (const field of fields) {
-      const val = formData[field.key] ?? "";
-      if (field.required && !val.trim()) return false;
-      if (field.minLength && val.length < field.minLength) return false;
-      if (field.maxLength && val.length > field.maxLength) return false;
+      if (field.type === "array") {
+        const arr = (formData[field.key] || []) as Record<string, unknown>[];
+        if (field.required && arr.length === 0) return false;
+        if (field.children) {
+          for (const item of arr) {
+            for (const child of field.children) {
+              const val = item[child.key] ?? "";
+              if (child.required && !String(val).trim()) return false;
+            }
+          }
+        }
+      } else {
+        const val = formData[field.key] ?? "";
+        if (field.required && !String(val).trim()) return false;
+        if (typeof val === "string") {
+          if (field.minLength && val.length < field.minLength) return false;
+          if (field.maxLength && val.length > field.maxLength) return false;
+        }
+      }
       if (fieldErrors[field.key]) return false;
     }
     return true;
@@ -729,10 +881,17 @@ const Pagination = forwardRef(function PaginationInner<T>(
     if (!isFormValid()) return;
     setIsSubmitting(true);
     try {
-      const payload: Record<string, string> = {};
+      const payload: Record<string, unknown> = {};
       if (fields) {
         for (const field of fields) {
-          payload[field.key] = (formData[field.key] ?? "").trim();
+          if (field.type === "array") {
+            payload[field.key] = formData[field.key] || [];
+          } else {
+            payload[field.key] =
+              typeof formData[field.key] === "string"
+                ? (formData[field.key] as string).trim()
+                : formData[field.key];
+          }
         }
       }
 
@@ -1200,10 +1359,23 @@ const Pagination = forwardRef(function PaginationInner<T>(
                   >
                     {field.label}
                   </Label>
-                  {field.type === "select" ? (
+                  {field.type === "array" ? (
+                    <ArrayField
+                      field={field}
+                      value={
+                        (formData[field.key] as Record<string, unknown>[]) || []
+                      }
+                      onChange={(newVal) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          [field.key]: newVal,
+                        }))
+                      }
+                    />
+                  ) : field.type === "select" ? (
                     <DynamicSelect
                       field={field}
-                      formData={formData}
+                      formData={formData as Record<string, string>}
                       onChange={(val) =>
                         setFormData((prev) => ({ ...prev, [field.key]: val }))
                       }
@@ -1212,7 +1384,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                     <textarea
                       id={`field-${field.key}`}
                       className="mt-1.5 w-full px-4 py-2.5 bg-dark-900/60 border border-dark-500/50 rounded-xl text-foreground placeholder-dark-400 focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/30 transition-all font-mono text-sm disabled:opacity-50 min-h-[80px] resize-y"
-                      value={formData[field.key] ?? ""}
+                      value={String(formData[field.key] ?? "")}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
@@ -1225,7 +1397,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                   ) : field.debounce ? (
                     <DebouncedInput
                       field={field}
-                      formData={formData}
+                      formData={formData as Record<string, string>}
                       onChange={(val) =>
                         setFormData((prev) => ({ ...prev, [field.key]: val }))
                       }
@@ -1247,7 +1419,7 @@ const Pagination = forwardRef(function PaginationInner<T>(
                       id={`field-${field.key}`}
                       type={field.type}
                       className="mt-1.5"
-                      value={formData[field.key] ?? ""}
+                      value={String(formData[field.key] ?? "")}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,

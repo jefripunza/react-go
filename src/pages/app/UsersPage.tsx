@@ -47,6 +47,8 @@ export default function UsersPage({}: UsersPageProps) {
         label: language({ id: "Roles", en: "Roles" }),
         type: "array",
         required: true,
+        minLength: 1,
+        strict: true,
         children: [
           {
             key: "division_id",
