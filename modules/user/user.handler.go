@@ -11,6 +11,7 @@ import (
 	role "react-go/modules/role/model"
 	model "react-go/modules/user/model"
 	"react-go/socket"
+	"react-go/types"
 	"react-go/variable"
 	"strings"
 
@@ -55,10 +56,10 @@ func ChangePassword(on string) func(c *fiber.Ctx) error {
 		}
 
 		// Send notification to user about password change
-		socket.SendNotification(existing.ID.String(), notification.Notification{
+		socket.SendNotification(existing.ID, types.Notification{
 			Type:    notification.NotificationTypeWarning,
-			Title:   "Your password was changed",
-			Message: "An administrator has changed your account password.",
+			Title:   types.Language{Id: "Kata sandi Anda diubah", En: "Your password was changed"},
+			Message: types.Language{Id: "Administrator telah mengubah kata sandi akun Anda.", En: "An administrator has changed your account password."},
 		})
 
 		return dto.OK(c, "Success update user", fiber.Map{
@@ -341,10 +342,10 @@ func Edit(c *fiber.Ctx) error {
 	}
 
 	// Send notification to edited user
-	socket.SendNotification(id.String(), notification.Notification{
+	socket.SendNotification(id, types.Notification{
 		Type:    notification.NotificationTypeInfo,
-		Title:   "Your profile was updated",
-		Message: "An administrator has updated your profile information.",
+		Title:   types.Language{Id: "Profil Anda diperbarui", En: "Your profile was updated"},
+		Message: types.Language{Id: "Administrator telah memperbarui informasi profil Anda.", En: "An administrator has updated your profile information."},
 	})
 
 	return dto.OK(c, "Success update user", fiber.Map{
@@ -516,10 +517,10 @@ func RoleSwitch(c *fiber.Ctx) error {
 	}
 
 	// Send notification to user about role change
-	socket.SendNotification(id.String(), notification.Notification{
+	socket.SendNotification(id, types.Notification{
 		Type:    notification.NotificationTypeSystem,
-		Title:   "Your role has been changed",
-		Message: "An administrator has changed your role to " + newRole + ".",
+		Title:   types.Language{Id: "Peran Anda telah diubah", En: "Your role has been changed"},
+		Message: types.Language{Id: "Administrator telah mengubah peran Anda menjadi " + newRole + ".", En: "An administrator has changed your role to " + newRole + "."},
 	})
 
 	return dto.OK(c, "Success switch role", fiber.Map{

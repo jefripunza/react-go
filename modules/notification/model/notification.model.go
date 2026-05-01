@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"time"
 
 	userModel "react-go/modules/user/model"
@@ -33,11 +34,21 @@ type Notification struct {
 }
 
 func (s *Notification) Map() map[string]any {
+	var titleMap map[string]string
+	if err := json.Unmarshal([]byte(s.Title), &titleMap); err != nil {
+		titleMap = map[string]string{"id": s.Title, "en": s.Title}
+	}
+
+	var messageMap map[string]string
+	if err := json.Unmarshal([]byte(s.Message), &messageMap); err != nil {
+		messageMap = map[string]string{"id": s.Message, "en": s.Message}
+	}
+
 	return map[string]any{
 		"id":         s.ID,
 		"type":       s.Type,
-		"title":      s.Title,
-		"message":    s.Message,
+		"title":      titleMap,
+		"message":    messageMap,
 		"is_read":    s.IsRead,
 		"link":       s.Link,
 		"navigate":   s.Navigate,

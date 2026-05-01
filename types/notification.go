@@ -1,10 +1,9 @@
 package types
 
 type Notification struct {
-	ID        string   `json:"id"`
-	Type      string   `json:"type"`
-	Title     Language `json:"title"`
-	Message   Language `json:"message"`
-	Timestamp string   `json:"timestamp"`
-	IsRead    bool     `json:"is_read"`
+	Type     string   `json:"type"`
+	Title    Language `json:"title"`
+	Message  Language `json:"message"`
+	Link     *string  `json:"link,omitempty"`
+	Navigate *string  `json:"navigate,omitempty"`
 }
