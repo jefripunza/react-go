@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useLanguageStore } from "@/stores/languageStore";
+import { usePermission } from "@/hooks/usePermission";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -31,6 +32,7 @@ interface Props {
   ruleKey?: string;
 }
 export default function RolesPage({ ruleKey }: Props) {
+  const perm = usePermission(ruleKey);
   const { languageCode, language } = useLanguageStore();
   const [divisions, setDivisions] = useState<DivisionGroup[]>([]);
   const [rules, setRules] = useState<Rule[]>([]);
@@ -426,10 +428,12 @@ export default function RolesPage({ ruleKey }: Props) {
             })}
           </p>
         </div>
-        <Button onClick={openDivCreate} className="gap-2">
-          <HiOutlinePlus size={16} />
-          {language({ id: "Tambah Divisi", en: "Add Division" })}
-        </Button>
+        {perm.canCreate && (
+          <Button onClick={openDivCreate} className="gap-2">
+            <HiOutlinePlus size={16} />
+            {language({ id: "Tambah Divisi", en: "Add Division" })}
+          </Button>
+        )}
       </div>
 
       {/* Divisions */}
@@ -460,41 +464,47 @@ export default function RolesPage({ ruleKey }: Props) {
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Toggle active */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDivToggle(division.id);
-                    }}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${division.is_active ? "bg-accent-500" : "bg-dark-600"}`}
-                  >
-                    <span
-                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${division.is_active ? "translate-x-[18px]" : "translate-x-[3px]"}`}
-                    />
-                  </button>
+                  {perm.canSet && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDivToggle(division.id);
+                      }}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${division.is_active ? "bg-accent-500" : "bg-dark-600"} ${!perm.canSet ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${division.is_active ? "translate-x-[18px]" : "translate-x-[3px]"}`}
+                      />
+                    </button>
+                  )}
                   {/* Edit */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openDivEdit(division);
-                    }}
-                    className="p-1.5 rounded-lg text-dark-400 hover:text-accent-400 hover:bg-dark-700/50 transition-all"
-                  >
-                    <HiOutlinePencilSquare size={15} />
-                  </button>
+                  {perm.canUpdate && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDivEdit(division);
+                      }}
+                      className="p-1.5 rounded-lg text-dark-400 hover:text-accent-400 hover:bg-dark-700/50 transition-all"
+                    >
+                      <HiOutlinePencilSquare size={15} />
+                    </button>
+                  )}
                   {/* Delete */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteTarget({
-                        type: "division",
-                        id: division.id,
-                        name: division.name,
-                      });
-                    }}
-                    className="p-1.5 rounded-lg text-dark-400 hover:text-red-400 hover:bg-dark-700/50 transition-all"
-                  >
-                    <HiOutlineTrash size={15} />
-                  </button>
+                  {perm.canDelete && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteTarget({
+                          type: "division",
+                          id: division.id,
+                          name: division.name,
+                        });
+                      }}
+                      className="p-1.5 rounded-lg text-dark-400 hover:text-red-400 hover:bg-dark-700/50 transition-all"
+                    >
+                      <HiOutlineTrash size={15} />
+                    </button>
+                  )}
                   <Badge variant="outline">
                     {division.roles.length}{" "}
                     {language({ id: "peran", en: "roles" })}
@@ -505,20 +515,22 @@ export default function RolesPage({ ruleKey }: Props) {
 
             {openDivisions.has(division.id) && (
               <CardContent className="space-y-3 pt-2">
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openRoleCreate(division.id);
-                    }}
-                  >
-                    <HiOutlinePlus size={14} />
-                    {language({ id: "Tambah Peran", en: "Add Role" })}
-                  </Button>
-                </div>
+                {perm.canCreate && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openRoleCreate(division.id);
+                      }}
+                    >
+                      <HiOutlinePlus size={14} />
+                      {language({ id: "Tambah Peran", en: "Add Role" })}
+                    </Button>
+                  </div>
+                )}
 
                 {division.roles.length === 0 ? (
                   <p className="text-sm text-dark-400 text-center py-4">
@@ -556,33 +568,39 @@ export default function RolesPage({ ruleKey }: Props) {
                           )}
                         </button>
                         <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() => handleRoleToggle(role.id)}
-                            disabled={!division.is_active}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${role.is_active ? "bg-accent-500" : "bg-dark-600"} disabled:opacity-40 disabled:cursor-not-allowed`}
-                          >
-                            <span
-                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${role.is_active ? "translate-x-[18px]" : "translate-x-[3px]"}`}
-                            />
-                          </button>
-                          <button
-                            onClick={() => openRoleEdit(role)}
-                            className="p-1.5 rounded-lg text-dark-400 hover:text-accent-400 hover:bg-dark-700/50 transition-all"
-                          >
-                            <HiOutlinePencilSquare size={15} />
-                          </button>
-                          <button
-                            onClick={() =>
-                              setDeleteTarget({
-                                type: "role",
-                                id: role.id,
-                                name: role.name,
-                              })
-                            }
-                            className="p-1.5 rounded-lg text-dark-400 hover:text-red-400 hover:bg-dark-700/50 transition-all"
-                          >
-                            <HiOutlineTrash size={15} />
-                          </button>
+                          {perm.canSet && (
+                            <button
+                              onClick={() => handleRoleToggle(role.id)}
+                              disabled={!division.is_active || !perm.canSet}
+                              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${role.is_active ? "bg-accent-500" : "bg-dark-600"} disabled:opacity-40 disabled:cursor-not-allowed`}
+                            >
+                              <span
+                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${role.is_active ? "translate-x-[18px]" : "translate-x-[3px]"}`}
+                              />
+                            </button>
+                          )}
+                          {perm.canUpdate && (
+                            <button
+                              onClick={() => openRoleEdit(role)}
+                              className="p-1.5 rounded-lg text-dark-400 hover:text-accent-400 hover:bg-dark-700/50 transition-all"
+                            >
+                              <HiOutlinePencilSquare size={15} />
+                            </button>
+                          )}
+                          {perm.canDelete && (
+                            <button
+                              onClick={() =>
+                                setDeleteTarget({
+                                  type: "role",
+                                  id: role.id,
+                                  name: role.name,
+                                })
+                              }
+                              className="p-1.5 rounded-lg text-dark-400 hover:text-red-400 hover:bg-dark-700/50 transition-all"
+                            >
+                              <HiOutlineTrash size={15} />
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -619,7 +637,9 @@ export default function RolesPage({ ruleKey }: Props) {
                                         toggleCol(role.id, act.key)
                                       }
                                       disabled={
-                                        !role.is_active || !division.is_active
+                                        !role.is_active ||
+                                        !division.is_active ||
+                                        !perm.canSet
                                       }
                                       className="w-3.5 h-3.5 rounded border-dark-500 text-accent-500 focus:ring-accent-500/30 focus:ring-offset-0 bg-dark-700 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                     />
@@ -648,7 +668,9 @@ export default function RolesPage({ ruleKey }: Props) {
                                         toggleRow(role.id, menu.key)
                                       }
                                       disabled={
-                                        !role.is_active || !division.is_active
+                                        !role.is_active ||
+                                        !division.is_active ||
+                                        !perm.canSet
                                       }
                                       className="w-3.5 h-3.5 rounded border-dark-500 text-accent-500 focus:ring-accent-500/30 focus:ring-offset-0 bg-dark-700 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                     />
@@ -672,7 +694,9 @@ export default function RolesPage({ ruleKey }: Props) {
                                           toggleRule(role.id, menu.key, act.key)
                                         }
                                         disabled={
-                                          !role.is_active || !division.is_active
+                                          !role.is_active ||
+                                          !division.is_active ||
+                                          !perm.canSet
                                         }
                                         className="w-4 h-4 rounded border-dark-500 text-accent-500 focus:ring-accent-500/30 focus:ring-offset-0 bg-dark-700 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
                                       />
@@ -707,7 +731,7 @@ export default function RolesPage({ ruleKey }: Props) {
       </div>
 
       {/* Save Button */}
-      {hasChanges && (
+      {hasChanges && perm.canSet && (
         <div className="sticky bottom-4 flex justify-end">
           <Button
             onClick={handleSave}
