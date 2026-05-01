@@ -21,6 +21,7 @@ export interface DynamicFormField {
     | "email"
     | "number"
     | "password"
+    | "address"
     | "select"
     | "textarea"
     | "array";

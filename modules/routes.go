@@ -2,6 +2,7 @@ package modules
 
 import (
 	"react-go/middlewares"
+	"react-go/modules/address"
 	"react-go/modules/apikey"
 	"react-go/modules/auth"
 	"react-go/modules/dashboard"
@@ -21,11 +22,14 @@ import (
 
 func SetupRoutes(app *fiber.App, api fiber.Router) {
 	// /api
-	example.RegisterRoutes(app)
+	example.PublicRoute(app)
+
+	// /api/address
+	address.PublicRoute(api.Group("/address"))
 
 	// /api/auth
-	auth.RegisterPublicRoutes(api.Group("/auth"))
-	auth.RegisterProtectedRoutes(api.Group("/auth", middlewares.UseToken))
+	auth.PublicRoute(api.Group("/auth"))
+	auth.ProtectedRoute(api.Group("/auth", middlewares.UseToken))
 
 	// User
 	user.ProtectedRoute(api.Group("/user", middlewares.UseToken))
