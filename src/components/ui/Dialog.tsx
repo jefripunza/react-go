@@ -1,6 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { RiCloseLine } from "react-icons/ri";
+import ControlButton from "@/components/ControlButton";
 
 /* ─── Root ───────────────────────────────────────────────────────── */
 
@@ -30,6 +31,11 @@ function Dialog({ open, onClose, width, children }: DialogProps) {
         className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
+
+      {/* Control Button at top right of overlay */}
+      <div className="fixed top-4 right-4 z-60 animate-fade-in flex items-center gap-2 bg-black/10 backdrop-blur-md rounded-lg p-2">
+        <ControlButton />
+      </div>
       {/* Content wrapper */}
       <div
         className="relative z-10 w-full mx-4 animate-fade-in"
