@@ -74,7 +74,9 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
         const found = user.roles?.find(
           (r) => r.role_id === role_selected.role_id,
         );
-        return found ? found.role_name : "No Role";
+        if (found) return found.role_name;
+        if (user.roles && user.roles.length > 0) return user.roles[0].role_name;
+        return "No Role";
       }
       return "No Role Selected";
     }
@@ -107,12 +109,25 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
     checkAuth();
   }, [validateToken, navigate]);
 
-  // Redirect non-su users without role selected
+  // Redirect non-su users without role selected or force update if selected role is missing
   useEffect(() => {
-    if (!isLoading && user && user.role !== "su" && !role_selected) {
-      navigate("/select-role", { replace: true });
+    if (!isLoading && user && user.role !== "su") {
+      const roles = user.roles || [];
+      if (roles.length === 0) {
+        if (role_selected) setRoleSelected(null);
+      } else {
+        const found = role_selected
+          ? roles.find((r) => r.role_id === role_selected.role_id)
+          : undefined;
+        if (!found) {
+          setRoleSelected({
+            division_id: roles[0].division_id,
+            role_id: roles[0].role_id,
+          });
+        }
+      }
     }
-  }, [isLoading, user, role_selected, navigate]);
+  }, [isLoading, user, role_selected, setRoleSelected]);
 
   // Fetch rules for the selected role
   useEffect(() => {
