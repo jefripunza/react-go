@@ -70,19 +70,19 @@ func GetAll(c *fiber.Ctx) error {
 }
 
 func Create(c *fiber.Ctx) error {
-	var req struct {
+	var body struct {
 		RoleDivisionID uint   `json:"role_division_id" validate:"required"`
 		Name           string `json:"name" validate:"required"`
 		Description    string `json:"description"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
 	// Check division exists
 	var division model.RoleDivision
 	if err := variable.Db.
-		First(&division, "id = ?", req.RoleDivisionID).
+		First(&division, "id = ?", body.RoleDivisionID).
 		Error; err != nil {
 		return dto.NotFound(c, "Division not found", nil)
 	}
@@ -90,16 +90,16 @@ func Create(c *fiber.Ctx) error {
 	// Check duplicate
 	var existing model.Role
 	if err := variable.Db.
-		Where("name = ?", req.Name).
+		Where("name = ?", body.Name).
 		First(&existing).
 		Error; err == nil {
 		return dto.BadRequest(c, "Role name already exists", nil)
 	}
 
 	role := model.Role{
-		RoleDivisionID: req.RoleDivisionID,
-		Name:           req.Name,
-		Description:    req.Description,
+		RoleDivisionID: body.RoleDivisionID,
+		Name:           body.Name,
+		Description:    body.Description,
 	}
 	if err := variable.Db.
 		Create(&role).
@@ -129,11 +129,11 @@ func Update(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "Invalid ID", nil)
 	}
 
-	var req struct {
+	var body struct {
 		Name        string `json:"name" validate:"required"`
 		Description string `json:"description"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
@@ -145,21 +145,21 @@ func Update(c *fiber.Ctx) error {
 	}
 
 	// Prevent renaming protected roles
-	if (role.Name == "su" || role.Name == "user") && req.Name != role.Name {
+	if (role.Name == "su" || role.Name == "user") && body.Name != role.Name {
 		return dto.BadRequest(c, "Cannot rename protected role", nil)
 	}
 
 	// Check duplicate name (excluding self)
 	var dup model.Role
 	if err := variable.Db.
-		Where("name = ? AND id != ?", req.Name, id).
+		Where("name = ? AND id != ?", body.Name, id).
 		First(&dup).
 		Error; err == nil {
 		return dto.BadRequest(c, "Role name already exists", nil)
 	}
 
-	role.Name = req.Name
-	role.Description = req.Description
+	role.Name = body.Name
+	role.Description = body.Description
 	if err := variable.Db.
 		Save(&role).
 		Error; err != nil {
@@ -223,29 +223,29 @@ func SetActive(c *fiber.Ctx) error {
 }
 
 func BulkDelete(c *fiber.Ctx) error {
-	var req struct {
+	var body struct {
 		IDs []uint64 `json:"ids"`
 	}
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.BodyParser(&body); err != nil {
 		return dto.BadRequest(c, "Invalid request body", nil)
 	}
 
-	if len(req.IDs) == 0 {
+	if len(body.IDs) == 0 {
 		return dto.BadRequest(c, "No IDs provided", nil)
 	}
 
 	// Cascade: delete rules for these roles
 	variable.Db.
-		Where("role_id IN ?", req.IDs).
+		Where("role_id IN ?", body.IDs).
 		Delete(&rule.Rule{})
 
 	if err := variable.Db.
-		Delete(&model.Role{}, "id IN ?", req.IDs).
+		Delete(&model.Role{}, "id IN ?", body.IDs).
 		Error; err != nil {
 		return dto.InternalServerError(c, "Failed to bulk delete roles", nil)
 	}
 
 	return dto.OK(c, "Success bulk delete roles", fiber.Map{
-		"deleted_count": len(req.IDs),
+		"deleted_count": len(body.IDs),
 	})
 }

@@ -24,25 +24,25 @@ func GetPaginate(c *fiber.Ctx) error {
 }
 
 func Create(c *fiber.Ctx) error {
-	var req struct {
+	var body struct {
 		Category string `json:"category" validate:"required"`
 		Key      string `json:"key" validate:"required"`
 		Value    string `json:"value"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
 	// Check duplicate key within same category
 	var existing model.MasterData
-	if err := variable.Db.Where("category = ? AND key = ?", req.Category, req.Key).First(&existing).Error; err == nil {
+	if err := variable.Db.Where("category = ? AND key = ?", body.Category, body.Key).First(&existing).Error; err == nil {
 		return dto.BadRequest(c, "Key already exists in this category", nil)
 	}
 
 	item := model.MasterData{
-		Category: req.Category,
-		Key:      req.Key,
-		Value:    req.Value,
+		Category: body.Category,
+		Key:      body.Key,
+		Value:    body.Value,
 	}
 	if err := variable.Db.Create(&item).Error; err != nil {
 		return dto.InternalServerError(c, "Failed to create master data", nil)
@@ -57,12 +57,12 @@ func Update(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "Invalid ID", nil)
 	}
 
-	var req struct {
+	var body struct {
 		Category string `json:"category" validate:"required"`
 		Key      string `json:"key" validate:"required"`
 		Value    string `json:"value"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
@@ -73,13 +73,13 @@ func Update(c *fiber.Ctx) error {
 
 	// Check duplicate key within same category (excluding self)
 	var dup model.MasterData
-	if err := variable.Db.Where("category = ? AND key = ? AND id != ?", req.Category, req.Key, id).First(&dup).Error; err == nil {
+	if err := variable.Db.Where("category = ? AND key = ? AND id != ?", body.Category, body.Key, id).First(&dup).Error; err == nil {
 		return dto.BadRequest(c, "Key already exists in this category", nil)
 	}
 
-	item.Category = req.Category
-	item.Key = req.Key
-	item.Value = req.Value
+	item.Category = body.Category
+	item.Key = body.Key
+	item.Value = body.Value
 	if err := variable.Db.Save(&item).Error; err != nil {
 		return dto.InternalServerError(c, "Failed to update master data", nil)
 	}
@@ -106,24 +106,24 @@ func Delete(c *fiber.Ctx) error {
 }
 
 func BulkDelete(c *fiber.Ctx) error {
-	var req struct {
+	var body struct {
 		IDs []uint64 `json:"ids"`
 	}
-	if err := c.BodyParser(&req); err != nil {
-		return dto.BadRequest(c, "Invalid request body", nil)
+	if err := function.RequestBody(c, &body); err != nil {
+		return dto.BadRequest(c, err.Error(), nil)
 	}
 
-	if len(req.IDs) == 0 {
+	if len(body.IDs) == 0 {
 		return dto.BadRequest(c, "No IDs provided", nil)
 	}
 
 	if err := variable.Db.
-		Delete(&model.MasterData{}, "id IN ?", req.IDs).
+		Delete(&model.MasterData{}, "id IN ?", body.IDs).
 		Error; err != nil {
 		return dto.InternalServerError(c, "Failed to bulk delete master data", nil)
 	}
 
 	return dto.OK(c, "Success bulk delete master data", fiber.Map{
-		"deleted_count": len(req.IDs),
+		"deleted_count": len(body.IDs),
 	})
 }

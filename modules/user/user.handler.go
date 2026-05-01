@@ -77,31 +77,68 @@ func Create(c *fiber.Ctx) error {
 		return dto.Forbidden(c, "Only super admin can create users", nil)
 	}
 
-	var req struct {
+	var body struct {
 		Name     string `json:"name" validate:"required,min=3,max=100"`
 		Username string `json:"username" validate:"required,min=5,max=20"`
 		Password string `json:"password" validate:"required,min=8,max=50"`
+		Roles    []struct {
+			DivisionID string `json:"division_id"`
+			RoleID     string `json:"role_id"`
+		} `json:"roles" validate:"required,min=1"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
+	}
+
+	roleIds := make([]string, 0)
+	for _, r := range body.Roles {
+		roleIds = append(roleIds, r.RoleID)
+	}
+
+	roles := make([]role.Role, 0)
+	if err := variable.Db.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
+		return dto.InternalServerError(c, "Failed to fetch roles", nil)
+	}
+	if len(roles) != len(roleIds) {
+		return dto.BadRequest(c, "Invalid role ids", nil)
 	}
 
 	// Check duplicate username
 	var existing model.User
 	if err := variable.Db.
-		Where("username = ?", req.Username).
+		Where("username = ?", body.Username).
 		First(&existing).
 		Error; err == nil {
 		return dto.BadRequest(c, "Username already exists", nil)
 	}
 
 	user := model.User{
-		Name:     strings.TrimSpace(req.Name),
-		Username: strings.TrimSpace(req.Username),
-		Password: hash.Password(req.Password),
+		Name:     strings.TrimSpace(body.Name),
+		Username: strings.TrimSpace(body.Username),
+		Password: hash.Password(body.Password),
 		Role:     model.UserRoleClient,
 	}
-	if err := variable.Db.Create(&user).Error; err != nil {
+
+	errTx := variable.Db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+
+		roleUsers := make([]role.RoleUser, 0)
+		for _, r := range roles {
+			roleUsers = append(roleUsers, role.RoleUser{
+				RoleID: r.ID,
+				UserID: user.ID,
+			})
+		}
+		if len(roleUsers) > 0 {
+			if err := tx.Create(&roleUsers).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if errTx != nil {
 		return dto.InternalServerError(c, "Failed to create user", nil)
 	}
 
@@ -227,11 +264,38 @@ func Edit(c *fiber.Ctx) error {
 		updates["username"] = username
 	}
 
-	if len(updates) == 0 {
+	if len(updates) == 0 && len(body.Roles) == 0 {
 		return dto.BadRequest(c, "No data to update", nil)
 	}
 
-	if err := variable.Db.Model(&existing).Updates(updates).Error; err != nil {
+	errTx := variable.Db.Transaction(func(tx *gorm.DB) error {
+		if len(updates) > 0 {
+			if err := tx.Model(&existing).Updates(updates).Error; err != nil {
+				return err
+			}
+		}
+
+		// Update roles
+		if err := tx.Where("user_id = ?", existing.ID).Delete(&role.RoleUser{}).Error; err != nil {
+			return err
+		}
+
+		roleUsers := make([]role.RoleUser, 0)
+		for _, r := range roles {
+			roleUsers = append(roleUsers, role.RoleUser{
+				RoleID: r.ID,
+				UserID: existing.ID,
+			})
+		}
+		if len(roleUsers) > 0 {
+			if err := tx.Create(&roleUsers).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+	if errTx != nil {
 		return dto.InternalServerError(c, "Failed to update user", nil)
 	}
 	if err := variable.Db.First(&existing, "id = ?", id.String()).Error; err != nil {
@@ -290,20 +354,20 @@ func BulkRemove(c *fiber.Ctx) error {
 		return dto.Forbidden(c, "Only super admin can bulk delete users", nil)
 	}
 
-	var req struct {
+	var body struct {
 		IDs []string `json:"ids"`
 	}
-	if err := c.BodyParser(&req); err != nil {
+	if err := c.BodyParser(&body); err != nil {
 		return dto.BadRequest(c, "Invalid request body", nil)
 	}
 
-	if len(req.IDs) == 0 {
+	if len(body.IDs) == 0 {
 		return dto.BadRequest(c, "No IDs provided", nil)
 	}
 
 	// Filter out self
-	validIDs := make([]string, 0, len(req.IDs))
-	for _, idStr := range req.IDs {
+	validIDs := make([]string, 0, len(body.IDs))
+	for _, idStr := range body.IDs {
 		id, err := uuid.Parse(idStr)
 		if err != nil {
 			continue

@@ -2,21 +2,13 @@ package apikey
 
 import (
 	"react-go/dto"
+	"react-go/function"
 	model "react-go/modules/apikey/model"
 	"react-go/variable"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
-
-type CreateApiKeyRequest struct {
-	Name      string  `json:"name"`
-	ExpiresAt *string `json:"expires_at,omitempty"` // RFC3339
-}
-
-type ToggleApiKeyRequest struct {
-	IsActive bool `json:"is_active"`
-}
 
 func GetAll(c *fiber.Ctx) error {
 	keys := make([]model.ApiKey, 0)
@@ -27,21 +19,24 @@ func GetAll(c *fiber.Ctx) error {
 }
 
 func Create(c *fiber.Ctx) error {
-	var req CreateApiKeyRequest
-	if err := c.BodyParser(&req); err != nil {
-		return dto.BadRequest(c, "Invalid request body", nil)
+	var body struct {
+		Name      string  `json:"name"`
+		ExpiresAt *string `json:"expires_at,omitempty"` // RFC3339
+	}
+	if err := function.RequestBody(c, &body); err != nil {
+		return dto.BadRequest(c, err.Error(), nil)
 	}
 
-	if req.Name == "" {
+	if body.Name == "" {
 		return dto.BadRequest(c, "Name is required", nil)
 	}
 
 	entry := model.ApiKey{
-		Name: req.Name,
+		Name: body.Name,
 	}
 
-	if req.ExpiresAt != nil && *req.ExpiresAt != "" {
-		parsed, err := time.Parse(time.RFC3339, *req.ExpiresAt)
+	if body.ExpiresAt != nil && *body.ExpiresAt != "" {
+		parsed, err := time.Parse(time.RFC3339, *body.ExpiresAt)
 		if err == nil {
 			entry.ExpiresAt = &parsed
 		}
@@ -60,9 +55,11 @@ func Toggle(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "ID is required", nil)
 	}
 
-	var req ToggleApiKeyRequest
-	if err := c.BodyParser(&req); err != nil {
-		return dto.BadRequest(c, "Invalid request body", nil)
+	var body struct {
+		IsActive bool `json:"is_active"`
+	}
+	if err := function.RequestBody(c, &body); err != nil {
+		return dto.BadRequest(c, err.Error(), nil)
 	}
 
 	var entry model.ApiKey
@@ -70,7 +67,7 @@ func Toggle(c *fiber.Ctx) error {
 		return dto.NotFound(c, "API key not found", nil)
 	}
 
-	entry.IsActive = req.IsActive
+	entry.IsActive = body.IsActive
 	if err := variable.Db.Save(&entry).Error; err != nil {
 		return dto.InternalServerError(c, "Failed to update API key", nil)
 	}

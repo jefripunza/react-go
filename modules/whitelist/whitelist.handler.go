@@ -8,12 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type CreateWhitelistRequest struct {
-	Type  string  `json:"type"`
-	Value string  `json:"value"`
-	Label *string `json:"label,omitempty"`
-}
-
 func GetAll(c *fiber.Ctx) error {
 	entries := make([]model.Whitelist, 0)
 	if err := variable.Db.Order("created_at DESC").Find(&entries).Error; err != nil {
@@ -23,28 +17,32 @@ func GetAll(c *fiber.Ctx) error {
 }
 
 func Create(c *fiber.Ctx) error {
-	var req CreateWhitelistRequest
-	if err := c.BodyParser(&req); err != nil {
+	var body struct {
+		Type  string  `json:"type"`
+		Value string  `json:"value"`
+		Label *string `json:"label,omitempty"`
+	}
+	if err := c.BodyParser(&body); err != nil {
 		return dto.BadRequest(c, "Invalid request body", nil)
 	}
 
-	if req.Type != "ip" && req.Type != "domain" {
+	if body.Type != "ip" && body.Type != "domain" {
 		return dto.BadRequest(c, "Type must be 'ip' or 'domain'", nil)
 	}
-	if req.Value == "" {
+	if body.Value == "" {
 		return dto.BadRequest(c, "Value is required", nil)
 	}
 
 	// Check if value already exists
 	var existing model.Whitelist
-	if err := variable.Db.Where("value = ?", req.Value).First(&existing).Error; err == nil {
+	if err := variable.Db.Where("value = ?", body.Value).First(&existing).Error; err == nil {
 		return dto.BadRequest(c, "Entry with this value already exists", nil)
 	}
 
 	entry := model.Whitelist{
-		Type:  req.Type,
-		Value: req.Value,
-		Label: req.Label,
+		Type:  body.Type,
+		Value: body.Value,
+		Label: body.Label,
 	}
 	if err := variable.Db.Create(&entry).Error; err != nil {
 		return dto.InternalServerError(c, "Failed to create whitelist entry", nil)

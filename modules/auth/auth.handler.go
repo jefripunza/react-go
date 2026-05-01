@@ -44,35 +44,33 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 func Login(c *fiber.Ctx) error {
-	var req LoginRequest
-	if err := c.BodyParser(&req); err != nil {
-		return dto.BadRequest(c, "Invalid request body", nil)
+	var body struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := function.RequestBody(c, &body); err != nil {
+		return dto.BadRequest(c, err.Error(), nil)
 	}
 
-	if req.Username == "" {
+	if body.Username == "" {
 		return dto.BadRequest(c, "Username is required", nil)
 	}
-	if req.Password == "" {
+	if body.Password == "" {
 		return dto.BadRequest(c, "Password is required", nil)
 	}
 
 	// Find user by username
 	var user model.User
 	if err := variable.Db.
-		Where("username = ?", req.Username).
+		Where("username = ?", body.Username).
 		First(&user).
 		Error; err != nil {
 		return dto.Unauthorized(c, "Invalid username or password", nil)
 	}
 
 	// Verify password
-	if !hash.ValidatePassword(req.Password, user.Password) {
+	if !hash.ValidatePassword(body.Password, user.Password) {
 		return dto.Unauthorized(c, "Invalid username or password", nil)
 	}
 

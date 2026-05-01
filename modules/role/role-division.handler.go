@@ -12,26 +12,26 @@ import (
 )
 
 func DivisionCreate(c *fiber.Ctx) error {
-	var req struct {
+	var body struct {
 		Name        string `json:"name" validate:"required"`
 		Description string `json:"description"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
 	// Check duplicate
 	var existing model.RoleDivision
 	if err := variable.Db.
-		Where("name = ?", req.Name).
+		Where("name = ?", body.Name).
 		First(&existing).
 		Error; err == nil {
 		return dto.BadRequest(c, "Division name already exists", nil)
 	}
 
 	division := model.RoleDivision{
-		Name:        req.Name,
-		Description: req.Description,
+		Name:        body.Name,
+		Description: body.Description,
 	}
 	if err := variable.Db.
 		Create(&division).
@@ -48,11 +48,11 @@ func DivisionUpdate(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "Invalid ID", nil)
 	}
 
-	var req struct {
+	var body struct {
 		Name        string `json:"name" validate:"required"`
 		Description string `json:"description"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
@@ -66,14 +66,14 @@ func DivisionUpdate(c *fiber.Ctx) error {
 	// Check duplicate name (excluding self)
 	var dup model.RoleDivision
 	if err := variable.Db.
-		Where("name = ? AND id != ?", req.Name, id).
+		Where("name = ? AND id != ?", body.Name, id).
 		First(&dup).
 		Error; err == nil {
 		return dto.BadRequest(c, "Division name already exists", nil)
 	}
 
-	division.Name = req.Name
-	division.Description = req.Description
+	division.Name = body.Name
+	division.Description = body.Description
 	if err := variable.Db.
 		Save(&division).
 		Error; err != nil {

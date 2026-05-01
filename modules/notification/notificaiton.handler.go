@@ -47,17 +47,17 @@ func MarkRead(c *fiber.Ctx) error {
 	}
 	userID := claims.ID
 
-	var req struct {
+	var body struct {
 		IDs []uint `json:"ids" validate:"required"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
 	now := time.Now()
 	if err := variable.Db.
 		Model(&model.Notification{}).
-		Where("id IN ? AND user_id = ?", req.IDs, userID).
+		Where("id IN ? AND user_id = ?", body.IDs, userID).
 		Updates(map[string]interface{}{
 			"is_read": true,
 			"read_at": now,
@@ -77,16 +77,16 @@ func ToggleRead(c *fiber.Ctx) error {
 	}
 	userID := claims.ID
 
-	var req struct {
+	var body struct {
 		ID uint `json:"id" validate:"required"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
 
 	var notif model.Notification
 	if err := variable.Db.
-		Where("id = ? AND user_id = ?", req.ID, userID).
+		Where("id = ? AND user_id = ?", body.ID, userID).
 		First(&notif).Error; err != nil {
 		return dto.NotFound(c, "Notification not found", nil)
 	}

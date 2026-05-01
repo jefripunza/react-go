@@ -11,7 +11,7 @@ import (
 )
 
 func Set(c *fiber.Ctx) error {
-	var req struct {
+	var body struct {
 		Data []struct {
 			RoleID uint   `json:"role_id" validate:"required"`
 			Key    string `json:"key" validate:"required"`
@@ -19,15 +19,15 @@ func Set(c *fiber.Ctx) error {
 			State  *bool  `json:"state" validate:"required"`
 		} `json:"data" validate:"required,gt=0,dive"`
 	}
-	if err := function.RequestBody(c, &req); err != nil {
+	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
 	}
-	if len(req.Data) == 0 {
+	if len(body.Data) == 0 {
 		return dto.BadRequest(c, "No data provided", nil)
 	}
 
 	roleIDs := make([]uint, 0)
-	for _, item := range req.Data {
+	for _, item := range body.Data {
 		roleIDs = append(roleIDs, item.RoleID)
 	}
 	roles := make([]role.Role, 0)
@@ -41,7 +41,7 @@ func Set(c *fiber.Ctx) error {
 	}
 
 	rows := make([]map[string]any, 0)
-	for _, item := range req.Data {
+	for _, item := range body.Data {
 		stateVal := false
 		if item.State != nil {
 			stateVal = *item.State
