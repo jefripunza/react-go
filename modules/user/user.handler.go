@@ -156,9 +156,42 @@ func Paginate(c *fiber.Ctx) error {
 		return dto.InternalServerError(c, "Failed to prepare pagination", nil)
 	}
 
+	userIds := make([]string, 0, len(users))
+	for _, user := range users {
+		userIds = append(userIds, user.ID.String())
+	}
+
+	roleUsers := make([]role.RoleUser, 0)
+	if err := variable.Db.Where("user_id IN ?", userIds).Find(&roleUsers).Error; err != nil {
+		return dto.InternalServerError(c, "Failed to fetch role users", nil)
+	}
+
+	roleIds := make([]uint, 0)
+	for _, ru := range roleUsers {
+		roleIds = append(roleIds, ru.RoleID)
+	}
+
+	roles := make([]role.Role, 0)
+	if len(roleIds) > 0 {
+		if err := variable.Db.Where("id IN ?", roleIds).Find(&roles).Error; err != nil {
+			return dto.InternalServerError(c, "Failed to fetch roles", nil)
+		}
+	}
+
 	result := make([]map[string]any, 0, len(users))
 	for i := range users {
 		user := users[i].Map()
+		userRoles := make([]string, 0)
+		for _, roleUser := range roleUsers {
+			if roleUser.UserID.String() == users[i].ID.String() {
+				for _, r := range roles {
+					if r.ID == roleUser.RoleID {
+						userRoles = append(userRoles, r.Name)
+					}
+				}
+			}
+		}
+		user["roles"] = userRoles
 		result = append(result, user)
 	}
 
