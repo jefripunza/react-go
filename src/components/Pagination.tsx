@@ -494,8 +494,15 @@ const Pagination = forwardRef(function PaginationInner<T>(
         if (field.required && arr.length === 0) return false;
         if (field.minLength !== undefined && arr.length < field.minLength)
           return false;
-        if (field.strict) {
-          const stringified = arr.map((item) => JSON.stringify(item));
+        if (field.strict && field.children) {
+          const childKeys = field.children.map((child) => child.key);
+          const stringified = arr.map((item) => {
+            const relevantData: Record<string, unknown> = {};
+            for (const key of childKeys) {
+              relevantData[key] = item[key];
+            }
+            return JSON.stringify(relevantData);
+          });
           const unique = new Set(stringified);
           if (unique.size !== arr.length) return false;
         }
