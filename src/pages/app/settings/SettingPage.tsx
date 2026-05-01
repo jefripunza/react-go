@@ -14,11 +14,11 @@ import { useAuthStore } from "@/stores/authStore";
 import { useLanguageStore } from "@/stores/languageStore";
 import AppIconSvg from "@/assets/react_go.svg";
 
-interface SettingPageProps {}
-export default function SettingPage({}: SettingPageProps) {
+interface Props {}
+export default function SettingPage({}: Props) {
   const { user } = useAuthStore();
   const { language } = useLanguageStore();
-  const isSu = user?.roles?.some(r => r.role_name === "su");
+  const isSu = user?.roles?.some((r) => r.role_name === "su");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -293,9 +293,7 @@ export default function SettingPage({}: SettingPageProps) {
 
       {/* Developer Credit */}
       <div className="bg-dark-800/60 border border-dark-600/40 rounded-2xl p-6 space-y-3">
-        <SectionTitle>
-          {language({ id: "Tentang", en: "About" })}
-        </SectionTitle>
+        <SectionTitle>{language({ id: "Tentang", en: "About" })}</SectionTitle>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-accent-500/20 border border-accent-500/30 flex items-center justify-center overflow-hidden shrink-0">
             <img src={AppIconSvg} alt="App" className="w-6 h-6" />

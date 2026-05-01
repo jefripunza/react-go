@@ -15,8 +15,8 @@ import { formatTimestamp } from "@/utils/datetime";
 import { typeConfig } from "@/pages/app/notifications/config";
 import { filters, type FilterType } from "@/pages/app/notifications/message";
 
-interface NotificationsPageProps {}
-export default function NotificationsPage({}: NotificationsPageProps) {
+interface Props {}
+export default function NotificationsPage({}: Props) {
   const { language } = useLanguageStore();
   const {
     notifications: notifs,

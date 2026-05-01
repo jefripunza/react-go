@@ -8,8 +8,10 @@ import Pagination, {
 } from "@/components/Pagination";
 import type { MasterDataItem } from "@/services/master_data.service";
 
-interface MasterDataPageProps {}
-export default function MasterDataPage({}: MasterDataPageProps) {
+interface Props {
+  key: string;
+}
+export default function MasterDataPage({ key }: Props) {
   const paginationRef = useRef<PaginationHandle>(null);
   const { languageCode, language } = useLanguageStore();
 

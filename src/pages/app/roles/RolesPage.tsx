@@ -27,7 +27,10 @@ import {
   HiOutlineTrash,
 } from "react-icons/hi2";
 
-export default function RolesPage() {
+interface Props {
+  key: string;
+}
+export default function RolesPage({ key }: Props) {
   const { languageCode, language } = useLanguageStore();
   const [divisions, setDivisions] = useState<DivisionGroup[]>([]);
   const [rules, setRules] = useState<Rule[]>([]);

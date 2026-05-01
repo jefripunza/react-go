@@ -10,8 +10,10 @@ import Pagination, {
 } from "@/components/Pagination";
 import BlankUser from "@/assets/blank-user.svg";
 
-interface UsersPageProps {}
-export default function UsersPage({}: UsersPageProps) {
+interface Props {
+  key: string;
+}
+export default function UsersPage({ key }: Props) {
   const paginationRef = useRef<PaginationHandle>(null);
   const { languageCode, language } = useLanguageStore();
 
