@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"react-go/dto"
@@ -181,12 +182,16 @@ func Paginate(c *fiber.Ctx) error {
 	result := make([]map[string]any, 0, len(users))
 	for i := range users {
 		user := users[i].Map()
-		userRoles := make([]string, 0)
+		userRoles := make([]map[string]any, 0)
 		for _, roleUser := range roleUsers {
 			if roleUser.UserID.String() == users[i].ID.String() {
 				for _, r := range roles {
 					if r.ID == roleUser.RoleID {
-						userRoles = append(userRoles, r.Name)
+						userRoles = append(userRoles, map[string]any{
+							"division_id": fmt.Sprintf("%v", r.RoleDivisionID),
+							"role_id":     fmt.Sprintf("%v", r.ID),
+							"role_name":   r.Name,
+						})
 					}
 				}
 			}
