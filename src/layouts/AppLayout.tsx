@@ -26,6 +26,13 @@ import AppIconSvg from "@/assets/react_go.svg";
 import ControlButton from "@/components/ControlButton";
 import NotificationPopup from "@/components/NotificationPopup";
 import { useNotificationStore } from "@/stores/notificationStore";
+import RoleStepper from "@/components/RoleStepper";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
 
 export interface ISidebarLink extends Partial<IndexRouteObject> {
   show_hr?: boolean;
@@ -46,8 +53,16 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
   const { language } = useLanguageStore();
 
   const { isLoading, validateToken, logout, user } = useAuthStore();
-  const { role_selected, clearRoleSelected } = useRuleStore();
+  const { role_selected, clearRoleSelected, setRoleSelected } = useRuleStore();
 
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+
+  const canSwitchRole = useMemo(() => {
+    if (!user) return false;
+    if (user.role === "su") return true;
+    if (user.roles && user.roles.length > 1) return true;
+    return false;
+  }, [user]);
   const displayRole = useMemo(() => {
     if (!user) return "";
     if (user.role === "su") return "Super Admin";
@@ -139,6 +154,30 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
         />
       )}
 
+      {/* Select Role Dialog */}
+      <Dialog open={roleDialogOpen} onClose={() => setRoleDialogOpen(false)}>
+        <DialogContent className="max-w-md bg-dark-800/90 backdrop-blur-xl border-dark-600/50">
+          <DialogHeader>
+            <DialogTitle>
+              {language({
+                id: "Ganti Divisi & Jabatan",
+                en: "Switch Division & Role",
+              })}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <RoleStepper
+              initialDivisionId={role_selected?.division_id}
+              initialRoleId={role_selected?.role_id}
+              onComplete={(divId, rId) => {
+                setRoleSelected({ division_id: divId, role_id: rId });
+                setRoleDialogOpen(false);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Sidebar */}
       <aside
         className={`
@@ -224,14 +263,24 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
         <div className="border-t border-dark-600/50 p-3 space-y-1 shrink-0">
           {/* User Info */}
           {(!effectiveCollapsed || isMobileOpen) && user && (
-            <div className="px-3 py-2 mb-2 bg-dark-800/40 rounded-xl border border-dark-600/30">
+            <button
+              onClick={() => {
+                if (canSwitchRole && user.role !== "su")
+                  setRoleDialogOpen(true);
+              }}
+              className={`w-full text-left px-3 py-2 mb-2 bg-dark-800/40 rounded-xl border border-dark-600/30 transition-colors ${
+                canSwitchRole && user.role !== "su"
+                  ? "hover:bg-dark-700/50 cursor-pointer hover:border-accent-500/30"
+                  : "cursor-default"
+              }`}
+            >
               <p className="text-sm font-medium text-foreground truncate">
                 {user.name}
               </p>
               <p className="text-xs text-dark-400 truncate mt-0.5">
                 {displayRole}
               </p>
-            </div>
+            </button>
           )}
 
           {/* Settings */}
