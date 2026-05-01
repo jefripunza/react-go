@@ -116,8 +116,8 @@ export default function UsersPage({}: UsersPageProps) {
           <div className="flex flex-wrap items-center gap-2">
             {user.roles &&
               user.roles.map((role) => (
-                <Badge key={role} variant={"secondary"}>
-                  {role}
+                <Badge key={role.role_id} variant={"secondary"}>
+                  {role.role_name}
                 </Badge>
               ))}
           </div>

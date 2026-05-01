@@ -18,7 +18,7 @@ interface SettingPageProps {}
 export default function SettingPage({}: SettingPageProps) {
   const { user } = useAuthStore();
   const { language } = useLanguageStore();
-  const isSu = user?.roles?.includes("su");
+  const isSu = user?.roles?.some(r => r.role_name === "su");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
