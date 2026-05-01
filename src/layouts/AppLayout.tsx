@@ -28,6 +28,8 @@ import NotificationPopup from "@/components/NotificationPopup";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { roleService } from "@/services/role.service";
 import RoleStepper from "@/components/RoleStepper";
+import { getSocket } from "@/lib/socket";
+import RulePermissionPage from "@/pages/error/RulePermissionPage";
 import {
   Dialog,
   DialogContent,
@@ -122,6 +124,24 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
         setRules(res.data.rows);
       })
       .catch(() => setRules([]));
+  }, [user, role_selected, setRules]);
+
+  // Listen for real-time rule updates via WebSocket
+  useEffect(() => {
+    if (!user || user.role === "su" || !role_selected) return;
+    const socket = getSocket();
+    const handleUpdateRule = () => {
+      roleService
+        .getRules()
+        .then((res) => {
+          setRules(res.data.rows);
+        })
+        .catch(() => setRules([]));
+    };
+    socket.on("update-rule", handleUpdateRule);
+    return () => {
+      socket.off("update-rule", handleUpdateRule);
+    };
   }, [user, role_selected, setRules]);
 
   useEffect(() => {
@@ -260,17 +280,17 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
               return hasRead;
             })
             .map((link) => {
-            const isActive = location.pathname === `/app/${link.path}`;
-            const Icon = link.icon;
-            return (
-              <Link
-                key={`/app/${link.path}`}
-                to={`/app/${link.path}`}
-                onClick={() => {
-                  if (window.innerWidth < 768)
-                    handleNavClick(link.path as string);
-                }}
-                className={`
+              const isActive = location.pathname === `/app/${link.path}`;
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={`/app/${link.path}`}
+                  to={`/app/${link.path}`}
+                  onClick={() => {
+                    if (window.innerWidth < 768)
+                      handleNavClick(link.path as string);
+                  }}
+                  className={`
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
                   ${
                     isActive
@@ -279,15 +299,15 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
                   }
                   ${effectiveCollapsed && !isMobileOpen ? "justify-center" : ""}
                 `}
-                title={effectiveCollapsed ? language(link.label) : undefined}
-              >
-                <Icon size={20} />
-                {(!effectiveCollapsed || isMobileOpen) && (
-                  <span className="truncate">{language(link.label)}</span>
-                )}
-              </Link>
-            );
-          })}
+                  title={effectiveCollapsed ? language(link.label) : undefined}
+                >
+                  <Icon size={20} />
+                  {(!effectiveCollapsed || isMobileOpen) && (
+                    <span className="truncate">{language(link.label)}</span>
+                  )}
+                </Link>
+              );
+            })}
         </nav>
 
         {/* Sidebar Footer */}
@@ -412,7 +432,34 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
 
         {/* Page content */}
         <main className="flex-1 min-h-0 p-4 lg:p-6 overflow-y-auto overflow-x-hidden">
-          <Outlet />
+          {(() => {
+            // Find the current sidebar link by matching path
+            const currentPath = location.pathname.replace("/app/", "");
+            const currentLink = sidebarLinks.find(
+              (link) => link.path === currentPath,
+            );
+
+            // If it's a strict page and user is NOT su, check read permission
+            if (
+              currentLink?.strict &&
+              user?.role !== "su" &&
+              role_selected
+            ) {
+              const roleId = Number(role_selected.role_id);
+              const hasRead = rules.some(
+                (r) =>
+                  r.role_id === roleId &&
+                  r.key === currentLink.path &&
+                  r.action === "read" &&
+                  r.state === true,
+              );
+              if (!hasRead) {
+                return <RulePermissionPage />;
+              }
+            }
+
+            return <Outlet />;
+          })()}
         </main>
       </div>
     </div>

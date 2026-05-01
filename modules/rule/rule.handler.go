@@ -5,6 +5,7 @@ import (
 	"react-go/function"
 	role "react-go/modules/role/model"
 	model "react-go/modules/rule/model"
+	"react-go/socket"
 	"react-go/variable"
 
 	"github.com/gofiber/fiber/v2"
@@ -73,7 +74,10 @@ func Set(c *fiber.Ctx) error {
 		}
 	}
 
-	// disini
+	// Broadcast rule update to all connected frontend clients
+	for _, s := range socket.UserNotification {
+		s.Emit("update-rule", true)
+	}
 
 	return dto.OK(c, "Role Menus set successfully", fiber.Map{
 		"rows": rows,
