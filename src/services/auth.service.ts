@@ -12,8 +12,7 @@ export const authService = {
     });
     return response.data;
   },
-  validate: async (on?: string) => {
-    if (on) console.log(`Validate on: ${on}`);
+  validate: async () => {
     const response =
       await satellite.get<Response<{ user: User }>>("/api/auth/validate");
     return response.data;

@@ -13,7 +13,7 @@ interface AuthState {
     password: string,
   ) => Promise<{ success: boolean; message: string | null }>;
   logout: () => Promise<{ success: boolean; message: string | null }>;
-  validateToken: (on?: string) => Promise<boolean>;
+  validateToken: (retrigger?: boolean) => Promise<boolean>;
   setAuthenticated: (value: boolean) => void;
 }
 
@@ -51,15 +51,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     return { success: true, message: null };
   },
   setAuthenticated: (value) => set({ isAuthenticated: value }),
-  validateToken: async (on?: string) => {
+  validateToken: async (retrigger: boolean = false) => {
     const { token, isAuthenticated } = get();
     if (!token) {
       set({ isAuthenticated: false, isLoading: false });
       return false;
     }
-    if (isAuthenticated) return true;
+    if (isAuthenticated && !retrigger) return true;
     try {
-      const resp = await authService.validate(on);
+      const resp = await authService.validate();
       const user = resp.data.user;
       set({ isAuthenticated: true, isLoading: false, user });
       return true;

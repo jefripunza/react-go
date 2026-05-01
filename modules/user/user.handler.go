@@ -348,6 +348,10 @@ func Edit(c *fiber.Ctx) error {
 		Message: types.Language{Id: "Administrator telah memperbarui informasi profil Anda.", En: "An administrator has updated your profile information."},
 	})
 
+	if s, ok := socket.UserNotification[id.String()]; ok {
+		s.Emit("update-user", true)
+	}
+
 	return dto.OK(c, "Success update user", fiber.Map{
 		"user": existing.Map(),
 	})

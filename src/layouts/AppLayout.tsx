@@ -100,7 +100,7 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const valid = await validateToken("app");
+      const valid = await validateToken();
       if (!valid) {
         navigate(no_auth_navigate, { replace: true });
         return;
@@ -157,6 +157,19 @@ export default function AppLayout({ sidebarLinks }: AppLayoutProps) {
       socket.off("update-rule", handleUpdateRule);
     };
   }, [user, role_selected, setRules]);
+
+  // Listen for real-time user updates via WebSocket
+  useEffect(() => {
+    if (!user) return;
+    const socket = getSocket();
+    const handleUpdateUser = () => {
+      validateToken(true);
+    };
+    socket.on("update-user", handleUpdateUser);
+    return () => {
+      socket.off("update-user", handleUpdateUser);
+    };
+  }, [user, validateToken]);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)"); // lg
