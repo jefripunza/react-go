@@ -78,7 +78,8 @@ export interface DynamicFormField {
     | "file"
     | "select"
     | "textarea"
-    | "array";
+    | "array"
+    | "col";
   options?: DynamicFormFieldOption[] | string;
   required?: boolean;
   minLength?: number;
@@ -812,7 +813,115 @@ function DebouncedInput({
   );
 }
 
-export interface DynamicFormProps {
+// ─── Col / Responsive Column Picker ──────────────────────────────────
+
+export interface ColValue {
+  col_m: number;
+  col_t: number;
+  col_l: number;
+  col_ll: number;
+}
+
+const COL_BREAKPOINTS: {
+  key: keyof ColValue;
+  label: string;
+  icon: string;
+  desc: string;
+  defaultVal: number;
+}[] = [
+  {
+    key: "col_m",
+    label: "Mobile",
+    icon: "📱",
+    desc: "≤ 425px",
+    defaultVal: 12,
+  },
+  {
+    key: "col_t",
+    label: "Tablet",
+    icon: "📋",
+    desc: "768px",
+    defaultVal: 6,
+  },
+  {
+    key: "col_l",
+    label: "Laptop",
+    icon: "💻",
+    desc: "1024px",
+    defaultVal: 4,
+  },
+  {
+    key: "col_ll",
+    label: "Large",
+    icon: "🖥️",
+    desc: "≥ 1440px",
+    defaultVal: 3,
+  },
+];
+
+function DynamicCol({
+  value,
+  onChange,
+}: {
+  value: ColValue;
+  onChange: (val: ColValue) => void;
+}) {
+  const { language } = useLanguageStore();
+  const colVal: ColValue = {
+    col_m: value?.col_m ?? 12,
+    col_t: value?.col_t ?? 6,
+    col_l: value?.col_l ?? 4,
+    col_ll: value?.col_ll ?? 3,
+  };
+
+  const handleChange = (key: keyof ColValue, v: number) => {
+    onChange({ ...colVal, [key]: v });
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-3 mt-1.5">
+      {COL_BREAKPOINTS.map((bp) => (
+        <div
+          key={bp.key}
+          className="bg-dark-900/60 border border-dark-600/40 rounded-xl p-3"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm">{bp.icon}</span>
+              <span className="text-xs font-semibold text-dark-200">
+                {bp.label}
+              </span>
+            </div>
+            <span className="text-[10px] font-mono text-accent-400 bg-accent-500/10 px-1.5 py-0.5 rounded">
+              {colVal[bp.key]}/12
+            </span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={12}
+            step={1}
+            value={colVal[bp.key]}
+            onChange={(e) => handleChange(bp.key, Number(e.target.value))}
+            className="w-full h-1.5 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-accent-500"
+          />
+          <div className="flex justify-between mt-1 text-[9px] text-dark-500">
+            <span>1</span>
+            <span>6</span>
+            <span>12</span>
+          </div>
+          <p className="text-[9px] text-dark-500 mt-1 text-center">
+            {bp.desc}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Main DynamicForm ──────────────────────────────────────────────
+
+interface DynamicFormProps {
   fields: DynamicFormField[];
   formData: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
@@ -847,7 +956,19 @@ export default function DynamicForm({
           <Label htmlFor={`field-${field.key}`} required={field.required}>
             {field.label}
           </Label>
-          {field.type === "array" ? (
+          {field.type === "col" ? (
+            <DynamicCol
+              value={
+                (formData[field.key] as ColValue) || {
+                  col_m: 12,
+                  col_t: 6,
+                  col_l: 4,
+                  col_ll: 3,
+                }
+              }
+              onChange={(val) => onChange(field.key, val)}
+            />
+          ) : field.type === "array" ? (
             <ArrayField
               field={field}
               value={(formData[field.key] as Record<string, unknown>[]) || []}

@@ -48,7 +48,10 @@ func WidgetCreate(c *fiber.Ctx) error {
 		ComponentKey string `json:"component_key"`
 		Key          string `json:"key"`
 		Type         string `json:"type"`
-		Col          int    `json:"col"`
+		ColM         int    `json:"col_m"`
+		ColT         int    `json:"col_t"`
+		ColL         int    `json:"col_l"`
+		ColLL        int    `json:"col_ll"`
 		Label        string `json:"label"`
 		Description  string `json:"description"`
 	}
@@ -71,8 +74,17 @@ func WidgetCreate(c *fiber.Ctx) error {
 	if body.Label == "" {
 		return dto.BadRequest(c, "label is required", nil)
 	}
-	if body.Col == 0 {
-		body.Col = 12
+	if body.ColM == 0 {
+		body.ColM = 12
+	}
+	if body.ColT == 0 {
+		body.ColT = 6
+	}
+	if body.ColL == 0 {
+		body.ColL = 4
+	}
+	if body.ColLL == 0 {
+		body.ColLL = 3
 	}
 
 	// Check if combination already exists
@@ -86,7 +98,10 @@ func WidgetCreate(c *fiber.Ctx) error {
 		ComponentKey: body.ComponentKey,
 		Key:          body.Key,
 		Type:         body.Type,
-		Col:          body.Col,
+		ColM:         body.ColM,
+		ColT:         body.ColT,
+		ColL:         body.ColL,
+		ColLL:        body.ColLL,
 		Label:        body.Label,
 		Description:  body.Description,
 	}
@@ -129,7 +144,10 @@ func WidgetEdit(c *fiber.Ctx) error {
 
 	var body struct {
 		Type        *string `json:"type"`
-		Col         *int    `json:"col"`
+		ColM        *int    `json:"col_m"`
+		ColT        *int    `json:"col_t"`
+		ColL        *int    `json:"col_l"`
+		ColLL       *int    `json:"col_ll"`
 		Label       *string `json:"label"`
 		Description *string `json:"description"`
 	}
@@ -141,8 +159,17 @@ func WidgetEdit(c *fiber.Ctx) error {
 	if body.Type != nil {
 		updates["type"] = *body.Type
 	}
-	if body.Col != nil {
-		updates["col"] = *body.Col
+	if body.ColM != nil {
+		updates["col_m"] = *body.ColM
+	}
+	if body.ColT != nil {
+		updates["col_t"] = *body.ColT
+	}
+	if body.ColL != nil {
+		updates["col_l"] = *body.ColL
+	}
+	if body.ColLL != nil {
+		updates["col_ll"] = *body.ColLL
 	}
 	if body.Label != nil {
 		updates["label"] = *body.Label

@@ -48,6 +48,7 @@ import WidgetTableList from "@/components/widget/WidgetTableList";
 import WidgetProgressList from "@/components/widget/WidgetProgressList";
 import WidgetLineChart from "@/components/widget/WidgetLineChart";
 import { Button } from "@/components/ui/Button";
+import Stepper from "@/components/ui/Stepper";
 
 interface Widget {
   label: string;
@@ -187,7 +188,12 @@ export default function DashboardPage({}: DashboardPageProps) {
     null,
   );
   const [formType, setFormType] = useState("");
-  const [formCol, setFormCol] = useState(12);
+  const [formColObj, setFormColObj] = useState({
+    col_m: 12,
+    col_t: 6,
+    col_l: 4,
+    col_ll: 3,
+  });
   const [formKey, setFormKey] = useState("");
   const [formLabel, setFormLabel] = useState("");
   const [formDesc, setFormDesc] = useState("");
@@ -222,7 +228,7 @@ export default function DashboardPage({}: DashboardPageProps) {
     setFormKey("");
     setFormLabel("");
     setFormDesc("");
-    setFormCol(12);
+    setFormColObj({ col_m: 12, col_t: 6, col_l: 4, col_ll: 3 });
     setFormType("");
   };
 
@@ -235,7 +241,10 @@ export default function DashboardPage({}: DashboardPageProps) {
         component_key: w.key,
         key: formKey || w.key + "_" + Date.now(),
         type: w.type,
-        col: formCol,
+        col_m: formColObj.col_m,
+        col_t: formColObj.col_t,
+        col_l: formColObj.col_l,
+        col_ll: formColObj.col_ll,
         label: formLabel || w.label,
         description: formDesc,
       });
@@ -250,7 +259,12 @@ export default function DashboardPage({}: DashboardPageProps) {
   const openEdit = (w: DashboardWidget) => {
     setEditingWidget(w);
     setFormType(w.type);
-    setFormCol(w.col);
+    setFormColObj({
+      col_m: w.col_m || 12,
+      col_t: w.col_t || 6,
+      col_l: w.col_l || 4,
+      col_ll: w.col_ll || 3,
+    });
     setFormLabel(w.label);
     setFormDesc(w.description);
     setEditModalOpen(true);
@@ -261,7 +275,10 @@ export default function DashboardPage({}: DashboardPageProps) {
     try {
       await dashboardService.editWidget(editingWidget.id, {
         type: formType,
-        col: formCol,
+        col_m: formColObj.col_m,
+        col_t: formColObj.col_t,
+        col_l: formColObj.col_l,
+        col_ll: formColObj.col_ll,
         label: formLabel,
         description: formDesc,
       });
@@ -783,7 +800,7 @@ export default function DashboardPage({}: DashboardPageProps) {
               <div
                 key={rw.id}
                 className="relative group"
-                style={{ gridColumn: `span ${rw.col} / span ${rw.col}` }}
+                style={{ gridColumn: `span ${rw.col_l || 12} / span ${rw.col_l || 12}` }}
               >
                 {/* SU edit/delete controls */}
                 {user?.role === "su" && (
@@ -818,7 +835,7 @@ export default function DashboardPage({}: DashboardPageProps) {
                     </p>
                   )}
                   <p className="text-xs text-dark-500 mt-2">
-                    {widgetDef?.label || rw.component_key} · col-{rw.col}
+                    {widgetDef?.label || rw.component_key} · {rw.col_m}/{rw.col_t}/{rw.col_l}/{rw.col_ll}
                   </p>
                 </div>
               </div>
@@ -853,33 +870,14 @@ export default function DashboardPage({}: DashboardPageProps) {
           </DialogHeader>
 
           {/* Stepper indicator */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-                  addStep >= 1
-                    ? "bg-accent-500 border-accent-500 text-white shadow-lg shadow-accent-500/20"
-                    : "border-dark-600 text-dark-400"
-                }`}
-              >
-                {addStep > 1 ? <RiPulseLine className="w-4 h-4" /> : "1"}
-              </div>
-            </div>
-            <div
-              className={`h-0.5 w-12 mx-2 rounded ${addStep >= 2 ? "bg-accent-500" : "bg-dark-600"}`}
-            />
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-                  addStep >= 2
-                    ? "bg-accent-500 border-accent-500 text-white shadow-lg shadow-accent-500/20"
-                    : "border-dark-600 text-dark-400"
-                }`}
-              >
-                2
-              </div>
-            </div>
-          </div>
+          <Stepper
+            currentStep={addStep}
+            totalSteps={2}
+            labels={[
+              language({ id: "Pilih Widget", en: "Select Widget" }),
+              language({ id: "Konfigurasi", en: "Configure" }),
+            ]}
+          />
 
           <div className="min-h-[300px]">
             {addStep === 1 ? (
@@ -950,25 +948,78 @@ export default function DashboardPage({}: DashboardPageProps) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-dark-300 mb-1.5 uppercase tracking-wider">
-                    {language({ id: "Lebar Kolom", en: "Column Width" })} (
-                    {formCol}/12)
+                  <label className="block text-xs font-medium text-dark-300 mb-2 uppercase tracking-wider">
+                    {language({
+                      id: "Lebar Kolom Responsif",
+                      en: "Responsive Column Width",
+                    })}
                   </label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={12}
-                    step={1}
-                    value={formCol}
-                    onChange={(e) => setFormCol(Number(e.target.value))}
-                    className="w-full h-1.5 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-accent-500"
-                  />
-                  <div className="flex justify-between mt-1 text-[10px] text-dark-400 font-medium">
-                    <span>1</span>
-                    <span>3</span>
-                    <span>6</span>
-                    <span>9</span>
-                    <span>12</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    {([
+                      {
+                        key: "col_m" as const,
+                        label: "Mobile",
+                        icon: "📱",
+                        desc: "≤ 425px",
+                      },
+                      {
+                        key: "col_t" as const,
+                        label: "Tablet",
+                        icon: "📋",
+                        desc: "768px",
+                      },
+                      {
+                        key: "col_l" as const,
+                        label: "Laptop",
+                        icon: "💻",
+                        desc: "1024px",
+                      },
+                      {
+                        key: "col_ll" as const,
+                        label: "Large",
+                        icon: "🖥️",
+                        desc: "≥ 1440px",
+                      },
+                    ] as const).map((bp) => (
+                      <div
+                        key={bp.key}
+                        className="bg-dark-900/60 border border-dark-600/40 rounded-xl p-3"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">{bp.icon}</span>
+                            <span className="text-xs font-semibold text-dark-200">
+                              {bp.label}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono text-accent-400 bg-accent-500/10 px-1.5 py-0.5 rounded">
+                            {formColObj[bp.key]}/12
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={12}
+                          step={1}
+                          value={formColObj[bp.key]}
+                          onChange={(e) =>
+                            setFormColObj((prev) => ({
+                              ...prev,
+                              [bp.key]: Number(e.target.value),
+                            }))
+                          }
+                          className="w-full h-1.5 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-accent-500"
+                        />
+                        <div className="flex justify-between mt-1 text-[9px] text-dark-500">
+                          <span>1</span>
+                          <span>6</span>
+                          <span>12</span>
+                        </div>
+                        <p className="text-[9px] text-dark-500 mt-1 text-center">
+                          {bp.desc}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1036,35 +1087,95 @@ export default function DashboardPage({}: DashboardPageProps) {
                 className="w-full px-3 py-2 rounded-lg bg-dark-700/50 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-dark-300 mb-1.5">
-                  Type
-                </label>
-                <select
-                  value={formType}
-                  onChange={(e) => setFormType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-dark-700/50 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500"
-                >
-                  {widgets.map((w) => (
-                    <option key={w.type} value={w.type}>
-                      {w.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-dark-300 mb-1.5">
-                  Col (1-12)
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={12}
-                  value={formCol}
-                  onChange={(e) => setFormCol(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg bg-dark-700/50 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500"
-                />
+            <div>
+              <label className="block text-xs font-medium text-dark-300 mb-1.5">
+                Type
+              </label>
+              <select
+                value={formType}
+                onChange={(e) => setFormType(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-dark-700/50 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500"
+              >
+                {widgets.map((w) => (
+                  <option key={w.type} value={w.type}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-dark-300 mb-2 uppercase tracking-wider">
+                {language({
+                  id: "Lebar Kolom Responsif",
+                  en: "Responsive Column Width",
+                })}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {([
+                  {
+                    key: "col_m" as const,
+                    label: "Mobile",
+                    icon: "📱",
+                    desc: "≤ 425px",
+                  },
+                  {
+                    key: "col_t" as const,
+                    label: "Tablet",
+                    icon: "📋",
+                    desc: "768px",
+                  },
+                  {
+                    key: "col_l" as const,
+                    label: "Laptop",
+                    icon: "💻",
+                    desc: "1024px",
+                  },
+                  {
+                    key: "col_ll" as const,
+                    label: "Large",
+                    icon: "🖥️",
+                    desc: "≥ 1440px",
+                  },
+                ] as const).map((bp) => (
+                  <div
+                    key={bp.key}
+                    className="bg-dark-900/60 border border-dark-600/40 rounded-xl p-3"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm">{bp.icon}</span>
+                        <span className="text-xs font-semibold text-dark-200">
+                          {bp.label}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono text-accent-400 bg-accent-500/10 px-1.5 py-0.5 rounded">
+                        {formColObj[bp.key]}/12
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={12}
+                      step={1}
+                      value={formColObj[bp.key]}
+                      onChange={(e) =>
+                        setFormColObj((prev) => ({
+                          ...prev,
+                          [bp.key]: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full h-1.5 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-accent-500"
+                    />
+                    <div className="flex justify-between mt-1 text-[9px] text-dark-500">
+                      <span>1</span>
+                      <span>6</span>
+                      <span>12</span>
+                    </div>
+                    <p className="text-[9px] text-dark-500 mt-1 text-center">
+                      {bp.desc}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

@@ -12,7 +12,10 @@ export interface DashboardWidget {
   component_key: string;
   key: string;
   type: string;
-  col: number;
+  col_m: number;
+  col_t: number;
+  col_l: number;
+  col_ll: number;
   label: string;
   description: string;
 }
