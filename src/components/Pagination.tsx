@@ -1042,20 +1042,22 @@ const Pagination = forwardRef(function PaginationInner<T>(
                   : language({ id: "Tambah Data", en: "Add Data" })}
               </DialogTitle>
             </DialogHeader>
-            {fields && fields.length > 0 && (
-              <DynamicForm
-                fields={fields}
-                formData={formData}
-                onChange={(key, val) =>
-                  setFormData((prev) => ({ ...prev, [key]: val }))
-                }
-                fieldErrors={fieldErrors}
-                editingRow={editingRow}
-                onError={(key, err) =>
-                  setFieldErrors((prev) => ({ ...prev, [key]: err }))
-                }
-              />
-            )}
+            <div className="overflow-y-auto max-h-[60vh] -mx-6 px-6 py-1">
+              {fields && fields.length > 0 && (
+                <DynamicForm
+                  fields={fields}
+                  formData={formData}
+                  onChange={(key, val) =>
+                    setFormData((prev) => ({ ...prev, [key]: val }))
+                  }
+                  fieldErrors={fieldErrors}
+                  editingRow={editingRow}
+                  onError={(key, err) =>
+                    setFieldErrors((prev) => ({ ...prev, [key]: err }))
+                  }
+                />
+              )}
+            </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>
                 {language({ id: "Batal", en: "Cancel" })}
@@ -1161,27 +1163,29 @@ const Pagination = forwardRef(function PaginationInner<T>(
         extraActions?.[extraActionState.actionIndex] && (
           <Dialog open={true} onClose={() => {}}>
             <DialogContent onClose={() => setExtraActionState(null)}>
-              {typeof extraActions[extraActionState.actionIndex].component ===
-              "function"
-                ? (
-                    extraActions[extraActionState.actionIndex]
-                      .component as Function
-                  )(extraActionState.row, () => setExtraActionState(null))
-                : typeof extraActions[extraActionState.actionIndex]
-                      .component === "object" &&
-                    isValidElement(
-                      extraActions[extraActionState.actionIndex].component,
-                    )
-                  ? cloneElement(
+              <div className="overflow-y-auto max-h-[80vh] -mx-6 px-6 py-1">
+                {typeof extraActions[extraActionState.actionIndex].component ===
+                "function"
+                  ? (
                       extraActions[extraActionState.actionIndex]
-                        .component as React.ReactElement,
-                      {
-                        // @ts-ignore
-                        row: extraActionState.row,
-                        onClose: () => setExtraActionState(null),
-                      },
-                    )
-                  : extraActions[extraActionState.actionIndex].component}
+                        .component as Function
+                    )(extraActionState.row, () => setExtraActionState(null))
+                  : typeof extraActions[extraActionState.actionIndex]
+                        .component === "object" &&
+                      isValidElement(
+                        extraActions[extraActionState.actionIndex].component,
+                      )
+                    ? cloneElement(
+                        extraActions[extraActionState.actionIndex]
+                          .component as React.ReactElement,
+                        {
+                          // @ts-ignore
+                          row: extraActionState.row,
+                          onClose: () => setExtraActionState(null),
+                        },
+                      )
+                    : extraActions[extraActionState.actionIndex].component}
+              </div>
             </DialogContent>
           </Dialog>
         )}
