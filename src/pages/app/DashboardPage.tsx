@@ -14,9 +14,13 @@ import {
   RiCheckboxCircleLine,
   RiEditLine,
   RiDeleteBinLine,
+  RiCloseLine,
 } from "react-icons/ri";
 
-import satellite from "@/lib/satellite";
+import {
+  dashboardService,
+  type DashboardWidget,
+} from "@/services/dashboard.service";
 import StatCard from "@/components/StatCard";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import {
@@ -31,7 +35,6 @@ import { useDashboardStore } from "@/stores/dashboardStore";
 import { useLanguageStore } from "@/stores/languageStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useRuleStore } from "@/stores/ruleStore";
-import type { Response } from "@/types/response";
 import type { Option } from "@/types/option";
 import { DAYS_30, MONTHS } from "@/dummy";
 
@@ -45,18 +48,6 @@ import WidgetTableList from "@/components/widget/WidgetTableList";
 import WidgetProgressList from "@/components/widget/WidgetProgressList";
 import WidgetLineChart from "@/components/widget/WidgetLineChart";
 import { Button } from "@/components/ui/Button";
-
-interface DashboardWidget {
-  id: string;
-  role_id: number;
-  component_key: string;
-  key: string;
-  type: string;
-  col: number;
-  label: string;
-  description: string;
-  value: number;
-}
 
 interface Widget {
   label: string;
@@ -75,7 +66,7 @@ const widgets: Widget[] = [
 Example Response:
   {
     "data": {
-      "x_type": "month",
+      "x_type": "month", // date, day, week, month, year
       "rows": [
         {
           "x": 1, // Jan
@@ -169,10 +160,10 @@ export default function DashboardPage({}: DashboardPageProps) {
 
   useEffect(() => {
     setLoadingRoles(true);
-    satellite
-      .get<Response<Option[]>>("/api/option/roles")
+    dashboardService
+      .getRoles()
       .then((res) => {
-        setRoles(res.data.data || []);
+        setRoles(res.data || []);
       })
       .catch((err) => console.error("Failed to fetch roles:", err))
       .finally(() => setLoadingRoles(false));
@@ -202,11 +193,9 @@ export default function DashboardPage({}: DashboardPageProps) {
 
   const fetchWidgets = useCallback((roleId: string) => {
     if (!roleId || roleId === "" || roleId === "-") return;
-    satellite
-      .get<Response<DashboardWidget[]>>(
-        `/api/dashboard/widget/list?role_id=${roleId}`,
-      )
-      .then((res) => setRoleWidgets(res.data.data || []))
+    dashboardService
+      .getWidgets(roleId)
+      .then((res) => setRoleWidgets(res.data || []))
       .catch(() => setRoleWidgets([]));
   }, []);
 
@@ -218,7 +207,7 @@ export default function DashboardPage({}: DashboardPageProps) {
     const w = widgets.find((w) => w.key === selectedWidgetKey);
     if (!w || !selectedRole) return;
     try {
-      await satellite.post("/api/dashboard/widget/create", {
+      await dashboardService.createWidget({
         role_id: Number(selectedRole),
         component_key: w.key,
         key: w.key + "_" + Date.now(),
@@ -247,7 +236,7 @@ export default function DashboardPage({}: DashboardPageProps) {
   const handleEdit = async () => {
     if (!editingWidget) return;
     try {
-      await satellite.put(`/api/dashboard/widget/edit/${editingWidget.id}`, {
+      await dashboardService.editWidget(editingWidget.id, {
         type: formType,
         col: formCol,
         label: formLabel,
@@ -264,9 +253,7 @@ export default function DashboardPage({}: DashboardPageProps) {
   const handleDelete = async () => {
     if (!deletingWidget) return;
     try {
-      await satellite.delete(
-        `/api/dashboard/widget/remove/${deletingWidget.id}`,
-      );
+      await dashboardService.deleteWidget(deletingWidget.id);
       setDeleteModalOpen(false);
       setDeletingWidget(null);
       fetchWidgets(selectedRole);
@@ -818,8 +805,8 @@ export default function DashboardPage({}: DashboardPageProps) {
       )}
 
       {/* Add Widget Modal */}
-      <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)}>
-        <DialogContent>
+      <Dialog open={addModalOpen} onClose={() => {}}>
+        <DialogContent onClose={() => setAddModalOpen(false)}>
           <DialogHeader>
             <DialogTitle>
               {language({ id: "Tambah Widget", en: "Add Widget" })}
