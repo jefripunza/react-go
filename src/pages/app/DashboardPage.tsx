@@ -14,6 +14,10 @@ import LineChart from "@/components/LineChart";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { getSocket } from "@/lib/socket";
 import { useLanguageStore } from "@/stores/languageStore";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import satellite from "@/lib/satellite";
+import type { Response } from "@/types/response";
+import type { Option } from "@/types/option";
 
 interface DashboardPageProps {}
 export default function DashboardPage({}: DashboardPageProps) {
@@ -29,6 +33,21 @@ export default function DashboardPage({}: DashboardPageProps) {
   const [seriesData, setSeriesData] = useState<
     Record<string, Array<[number, number]>>
   >({});
+
+  const [roles, setRoles] = useState<Option[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("");
+
+  useEffect(() => {
+    setLoadingRoles(true);
+    satellite
+      .get<Response<Option[]>>("/api/option/roles")
+      .then((res) => {
+        setRoles(res.data.data || []);
+      })
+      .catch((err) => console.error("Failed to fetch roles:", err))
+      .finally(() => setLoadingRoles(false));
+  }, []);
 
   const queuesRef = useRef(queues);
   useEffect(() => {
@@ -96,16 +115,37 @@ export default function DashboardPage({}: DashboardPageProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page header */}
-      <div>
-        <h2 className="text-xl font-bold text-foreground">
-          {language({ id: "Dashboard", en: "Dashboard" })}
-        </h2>
-        <p className="text-sm text-dark-300 mt-1">
-          {language({
-            id: "Ikhtisar sistem secara real-time",
-            en: "Real-time overview of your system",
-          })}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">
+            {language({ id: "Dashboard", en: "Dashboard" })}
+          </h2>
+          <p className="text-sm text-dark-300 mt-1">
+            {language({
+              id: "Ikhtisar sistem secara real-time",
+              en: "Real-time overview of your system",
+            })}
+          </p>
+        </div>
+        <div className="w-full sm:w-72">
+          <SearchableSelect
+            options={roles
+              .sort((a, b) =>
+                a.label.localeCompare(b.label, undefined, {
+                  numeric: true,
+                  sensitivity: "base",
+                }),
+              )
+              .map((r) => ({
+                value: String(r.value),
+                label: r.label,
+              }))}
+            value={selectedRole}
+            onChange={setSelectedRole}
+            loading={loadingRoles}
+            placeholder={language({ id: "Pilih Role", en: "Select Role" })}
+          />
+        </div>
       </div>
 
       {/* Stats grid */}

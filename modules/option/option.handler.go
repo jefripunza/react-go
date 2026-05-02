@@ -1,6 +1,7 @@
 package option
 
 import (
+	"fmt"
 	"react-go/dto"
 	"react-go/types"
 	"react-go/variable"
@@ -79,7 +80,7 @@ func Roles(c *fiber.Ctx) error {
 		return dto.InternalServerError(c, "Failed to find roles", nil)
 	}
 
-	rows := make([]map[string]any, 0)
+	rows := make([]types.Option, 0)
 	for _, row := range roles {
 		var division string
 		for _, d := range divisions {
@@ -88,11 +89,10 @@ func Roles(c *fiber.Ctx) error {
 				break
 			}
 		}
-		rows = append(rows, map[string]any{
-			"label":         row.Name,
-			"value":         row.ID,
-			"division_id":   row.RoleDivisionID,
-			"division_name": division,
+		label := fmt.Sprintf("%s - %s", division, row.Name)
+		rows = append(rows, types.Option{
+			Label: label,
+			Value: row.ID,
 		})
 	}
 
