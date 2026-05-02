@@ -80,24 +80,9 @@ export default function TabBrandPage({ ruleKey }: Props) {
   if (!perm.canRead) return <RulePermissionPage />;
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">
-            {language({ id: "Data Master", en: "Master Data" })}
-          </h1>
-          <p className="mt-1 text-sm text-dark-400">
-            {language({
-              id: "Kelola data master pada sistem",
-              en: "Manage master data in the system",
-            })}
-          </p>
-        </div>
-      </div>
-
       <Pagination
         ref={paginationRef}
-        title={language({ id: "Daftar Data Master", en: "Master Data List" })}
+        title={language({ id: "Daftar Brand", en: "Brand List" })}
         columns={columns}
         module="master-data"
         fields={fields}
