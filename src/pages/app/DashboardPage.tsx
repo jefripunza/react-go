@@ -95,7 +95,7 @@ Example Response:
 Example Response:
   {
     "data": {
-      "x_type": "month",
+      "x_type": "month", // date, day, week, month, year
       "rows": [
         {
           "x": 1, // Jan
