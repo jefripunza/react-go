@@ -1,12 +1,19 @@
 import { useRef, useEffect } from "react";
 import Highcharts from "highcharts";
-import HighchartsMore from "highcharts/highcharts-more";
-import HighchartsSolidGauge from "highcharts/modules/solid-gauge";
+import HighchartsMoreModule from "highcharts/highcharts-more";
+import HighchartsSolidGaugeModule from "highcharts/modules/solid-gauge";
 import HighchartsReact from "highcharts-react-official";
 
-// Initialize Highcharts modules
-HighchartsMore(Highcharts);
-HighchartsSolidGauge(Highcharts);
+// Initialize Highcharts modules (handle both ESM default and CJS)
+const HighchartsMore =
+  // @ts-ignore
+  (HighchartsMoreModule as unknown).default || HighchartsMoreModule;
+const HighchartsSolidGauge =
+  // @ts-ignore
+  (HighchartsSolidGaugeModule as unknown).default || HighchartsSolidGaugeModule;
+if (typeof HighchartsMore === "function") HighchartsMore(Highcharts);
+if (typeof HighchartsSolidGauge === "function")
+  HighchartsSolidGauge(Highcharts);
 
 interface WidgetGaugeChartProps {
   title: string;
@@ -80,6 +87,7 @@ export default function WidgetGaugeChart({
     tooltip: { enabled: false },
     plotOptions: {
       solidgauge: {
+        // @ts-ignore
         borderWidth: 0,
         dataLabels: {
           enabled: true,
