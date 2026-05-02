@@ -201,42 +201,6 @@ func Paginate(c *fiber.Ctx) error {
 	})
 }
 
-func handleAvatarUpload(c *fiber.Ctx, currentAvatar string, userID string) (string, error) {
-	avatarFile, _ := c.FormFile("avatar")
-	if avatarFile == nil {
-		return "", nil
-	}
-
-	if err := os.MkdirAll("avatar", 0755); err != nil {
-		return "", err
-	}
-
-	ext := strings.ToLower(filepath.Ext(avatarFile.Filename))
-	switch ext {
-	case ".jpg", ".jpeg", ".png", ".webp", ".gif":
-	default:
-		ext = ".jpeg"
-	}
-
-	cleanAvatar := filepath.Base(strings.TrimSpace(currentAvatar))
-	baseName := strings.TrimSuffix(cleanAvatar, filepath.Ext(cleanAvatar))
-	if baseName == "" {
-		baseName = userID
-	}
-
-	newFilename := baseName + ext
-	newFilePath := filepath.Join("avatar", newFilename)
-	if err := c.SaveFile(avatarFile, newFilePath); err != nil {
-		return "", err
-	}
-
-	if cleanAvatar != "" && cleanAvatar != newFilename {
-		_ = os.Remove(filepath.Join("avatar", cleanAvatar))
-	}
-
-	return newFilename, nil
-}
-
 func Edit(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 	id, err := uuid.Parse(idParam)
@@ -247,6 +211,7 @@ func Edit(c *fiber.Ctx) error {
 	var body struct {
 		Name     string `json:"name"`
 		Username string `json:"username"`
+		Avatar   string `json:"avatar"`
 		Address  string `json:"address"`
 		Roles    []struct {
 			DivisionID string `json:"division_id"`
@@ -255,6 +220,20 @@ func Edit(c *fiber.Ctx) error {
 	}
 	if err := function.RequestBody(c, &body); err != nil {
 		return dto.BadRequest(c, err.Error(), nil)
+	}
+
+	// Handle avatar upload
+	newAvatar := body.Avatar
+	if newAvatar != "" && newAvatar != "delete" {
+		// Check if file exists in uploads directory
+		// path usually starts with /upload/profile/filename.ext
+		cleanPath := strings.TrimPrefix(newAvatar, "/upload")
+		fsPath := filepath.Join(variable.UploadsPath, cleanPath)
+		if _, err := os.Stat(fsPath); os.IsNotExist(err) {
+			return dto.BadRequest(c, "Avatar file not found on server", nil)
+		}
+	} else if newAvatar == "delete" {
+		newAvatar = ""
 	}
 
 	roleIds := make([]string, 0)
@@ -301,6 +280,10 @@ func Edit(c *fiber.Ctx) error {
 	address := strings.TrimSpace(body.Address)
 	if address != "" {
 		updates["address"] = address
+	}
+
+	if newAvatar != existing.Avatar {
+		updates["avatar"] = newAvatar
 	}
 
 	if len(updates) == 0 && len(body.Roles) == 0 {
