@@ -1,4 +1,10 @@
-import { Fragment, useEffect, useState, useCallback } from "react";
+import React, {
+  Fragment,
+  useEffect,
+  useState,
+  useCallback,
+  type JSX,
+} from "react";
 import {
   RiPulseLine,
   RiInboxLine,
@@ -13,7 +19,14 @@ import {
 import satellite from "@/lib/satellite";
 import StatCard from "@/components/StatCard";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/Dialog";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useLanguageStore } from "@/stores/languageStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -45,12 +58,19 @@ interface DashboardWidget {
   value: number;
 }
 
-const widgets = [
+interface Widget {
+  label: string;
+  key: string;
+  type: string;
+  element: React.ComponentType;
+}
+
+const widgets: Widget[] = [
   {
     label: "Chart Area",
     key: "chart_area",
     type: "timeline",
-    element: WidgetAreaChart,
+    element: WidgetAreaChart as React.ComponentType,
     /**
 Example Response:
   {
@@ -70,43 +90,57 @@ Example Response:
     label: "Chart Column",
     key: "chart_column",
     type: "bar",
-    element: WidgetColumnChart,
+    element: WidgetColumnChart as React.ComponentType,
+    /**
+Example Response:
+  {
+    "data": {
+      "x_type": "month",
+      "rows": [
+        {
+          "x": 1, // Jan
+          "y": 100
+        }
+      ]
+    }
+  }
+     */
   },
   {
     label: "Chart Gauge",
     key: "chart_gauge",
     type: "gauge",
-    element: WidgetGaugeChart,
+    element: WidgetGaugeChart as React.ComponentType,
   },
   {
     label: "Chart Donut",
     key: "chart_donut",
     type: "pie",
-    element: WidgetDonutChart,
+    element: WidgetDonutChart as React.ComponentType,
   },
   {
     label: "Table List",
     key: "chart_table",
     type: "table",
-    element: WidgetTableList,
+    element: WidgetTableList as React.ComponentType,
   },
   {
     label: "Progress List",
     key: "chart_progress",
     type: "progress",
-    element: WidgetProgressList,
+    element: WidgetProgressList as React.ComponentType,
   },
   {
     label: "Traffic Stats",
     key: "chart_traffic",
     type: "traffic",
-    element: WidgetTrafficStats,
+    element: WidgetTrafficStats as React.ComponentType,
   },
   {
     label: "Chart Line",
     key: "chart_line",
     type: "line",
-    element: WidgetLineChart,
+    element: WidgetLineChart as React.ComponentType,
   },
 ];
 
@@ -124,7 +158,7 @@ export default function DashboardPage({}: DashboardPageProps) {
   const [roles, setRoles] = useState<Option[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [selectedRole, setSelectedRole] = useState(
-    user?.role !== "su" ? role_selected?.role_id || "" : ""
+    user?.role !== "su" ? role_selected?.role_id || "" : "",
   );
 
   useEffect(() => {
@@ -154,8 +188,12 @@ export default function DashboardPage({}: DashboardPageProps) {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [editingWidget, setEditingWidget] = useState<DashboardWidget | null>(null);
-  const [deletingWidget, setDeletingWidget] = useState<DashboardWidget | null>(null);
+  const [editingWidget, setEditingWidget] = useState<DashboardWidget | null>(
+    null,
+  );
+  const [deletingWidget, setDeletingWidget] = useState<DashboardWidget | null>(
+    null,
+  );
   const [formType, setFormType] = useState("");
   const [formCol, setFormCol] = useState(12);
   const [formLabel, setFormLabel] = useState("");
@@ -165,7 +203,9 @@ export default function DashboardPage({}: DashboardPageProps) {
   const fetchWidgets = useCallback((roleId: string) => {
     if (!roleId || roleId === "" || roleId === "-") return;
     satellite
-      .get<Response<DashboardWidget[]>>(`/api/dashboard/widget/list?role_id=${roleId}`)
+      .get<Response<DashboardWidget[]>>(
+        `/api/dashboard/widget/list?role_id=${roleId}`,
+      )
       .then((res) => setRoleWidgets(res.data.data || []))
       .catch(() => setRoleWidgets([]));
   }, []);
@@ -224,7 +264,9 @@ export default function DashboardPage({}: DashboardPageProps) {
   const handleDelete = async () => {
     if (!deletingWidget) return;
     try {
-      await satellite.delete(`/api/dashboard/widget/remove/${deletingWidget.id}`);
+      await satellite.delete(
+        `/api/dashboard/widget/remove/${deletingWidget.id}`,
+      );
       setDeleteModalOpen(false);
       setDeletingWidget(null);
       fetchWidgets(selectedRole);
@@ -250,14 +292,15 @@ export default function DashboardPage({}: DashboardPageProps) {
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           {/* Button Add Widget on left side select role */}
-          {user?.role === "su" && !(selectedRole === "" || selectedRole === "-") && (
-            <Button
-              onClick={() => setAddModalOpen(true)}
-              className="shrink-0 whitespace-nowrap"
-            >
-              {language({ id: "Tambah Widget", en: "Add Widget" })}
-            </Button>
-          )}
+          {user?.role === "su" &&
+            !(selectedRole === "" || selectedRole === "-") && (
+              <Button
+                onClick={() => setAddModalOpen(true)}
+                className="shrink-0 whitespace-nowrap"
+              >
+                {language({ id: "Tambah Widget", en: "Add Widget" })}
+              </Button>
+            )}
 
           {/* Select Role on SU */}
           {user?.role === "su" && (
@@ -743,7 +786,10 @@ export default function DashboardPage({}: DashboardPageProps) {
                       <RiEditLine className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => { setDeletingWidget(rw); setDeleteModalOpen(true); }}
+                      onClick={() => {
+                        setDeletingWidget(rw);
+                        setDeleteModalOpen(true);
+                      }}
                       className="p-1.5 rounded-lg bg-dark-700/80 backdrop-blur-sm text-dark-300 hover:text-neon-red hover:bg-dark-600/80 transition-all"
                       title={language({ id: "Hapus", en: "Delete" })}
                     >
@@ -753,8 +799,14 @@ export default function DashboardPage({}: DashboardPageProps) {
                 )}
                 {/* Widget card */}
                 <div className="bg-dark-800/60 border border-dark-600/40 rounded-2xl p-5">
-                  <h3 className="text-sm font-semibold text-foreground">{rw.label}</h3>
-                  {rw.description && <p className="text-xs text-dark-400 mt-0.5">{rw.description}</p>}
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {rw.label}
+                  </h3>
+                  {rw.description && (
+                    <p className="text-xs text-dark-400 mt-0.5">
+                      {rw.description}
+                    </p>
+                  )}
                   <p className="text-xs text-dark-500 mt-2">
                     {widgetDef?.label || rw.component_key} · col-{rw.col}
                   </p>
@@ -769,9 +821,14 @@ export default function DashboardPage({}: DashboardPageProps) {
       <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{language({ id: "Tambah Widget", en: "Add Widget" })}</DialogTitle>
+            <DialogTitle>
+              {language({ id: "Tambah Widget", en: "Add Widget" })}
+            </DialogTitle>
             <DialogDescription>
-              {language({ id: "Pilih jenis widget untuk ditambahkan", en: "Select widget type to add" })}
+              {language({
+                id: "Pilih jenis widget untuk ditambahkan",
+                en: "Select widget type to add",
+              })}
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
@@ -805,7 +862,9 @@ export default function DashboardPage({}: DashboardPageProps) {
       <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{language({ id: "Edit Widget", en: "Edit Widget" })}</DialogTitle>
+            <DialogTitle>
+              {language({ id: "Edit Widget", en: "Edit Widget" })}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -832,14 +891,18 @@ export default function DashboardPage({}: DashboardPageProps) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-dark-300 mb-1.5">Type</label>
+                <label className="block text-xs font-medium text-dark-300 mb-1.5">
+                  Type
+                </label>
                 <select
                   value={formType}
                   onChange={(e) => setFormType(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-dark-700/50 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500"
                 >
                   {widgets.map((w) => (
-                    <option key={w.type} value={w.type}>{w.label}</option>
+                    <option key={w.type} value={w.type}>
+                      {w.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -873,7 +936,9 @@ export default function DashboardPage({}: DashboardPageProps) {
       <Dialog open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{language({ id: "Hapus Widget", en: "Delete Widget" })}</DialogTitle>
+            <DialogTitle>
+              {language({ id: "Hapus Widget", en: "Delete Widget" })}
+            </DialogTitle>
             <DialogDescription>
               {language({
                 id: `Apakah Anda yakin ingin menghapus widget "${deletingWidget?.label}"?`,
