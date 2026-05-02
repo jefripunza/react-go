@@ -11,6 +11,7 @@ import Pagination, {
 import BlankUser from "@/assets/blank-user.svg";
 import { usePermission } from "@/hooks/usePermission";
 import RulePermissionPage from "@/pages/error/RulePermissionPage";
+import { FileType } from "@/components/DynamicForm";
 
 interface Props {
   ruleKey?: string;
@@ -28,6 +29,8 @@ export default function UsersPage({ ruleKey }: Props) {
         label: language({ id: "Foto Profil", en: "Profile Picture" }),
         type: "file",
         fileTarget: "profile",
+        fileMaxSize: 1024 * 1024 * 5,
+        fileType: [FileType.Jpeg, FileType.Png],
         required: true,
       },
       {

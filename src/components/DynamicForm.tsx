@@ -13,6 +13,56 @@ export interface DynamicFormFieldOption {
   label: string;
 }
 
+export enum FileType {
+  Jpeg = "image/jpeg",
+  Png = "image/png",
+  Gif = "image/gif",
+  Webp = "image/webp",
+  Svg = "image/svg+xml",
+  AudioMpeg = "audio/mpeg",
+  AudioWav = "audio/wav",
+  AudioOgg = "audio/ogg",
+  AudioWebm = "audio/webm",
+  Mp4 = "video/mp4",
+  Webm = "video/webm",
+  Ogg = "video/ogg",
+  Pdf = "application/pdf",
+  Doc = "application/msword",
+  Docx = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  Xls = "application/vnd.ms-excel",
+  Xlsx = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  Zip = "application/zip",
+  TextPlain = "text/plain",
+  Csv = "text/csv",
+}
+
+export enum FileTypeGroup {
+  Images = [
+    FileType.Jpeg,
+    FileType.Png,
+    FileType.Gif,
+    FileType.Webp,
+    FileType.Svg,
+  ],
+  Audios = [
+    FileType.AudioMpeg,
+    FileType.AudioWav,
+    FileType.AudioOgg,
+    FileType.AudioWebm,
+  ],
+  Videos = [FileType.Mp4, FileType.Webm, FileType.Ogg],
+  Documents = [
+    FileType.Pdf,
+    FileType.Doc,
+    FileType.Docx,
+    FileType.Xls,
+    FileType.Xlsx,
+    FileType.Zip,
+    FileType.TextPlain,
+    FileType.Csv,
+  ],
+}
+
 export interface DynamicFormField {
   key: string;
   label: string;
@@ -22,6 +72,7 @@ export interface DynamicFormField {
     | "number"
     | "password"
     | "address"
+    | "file"
     | "select"
     | "textarea"
     | "array";
@@ -35,6 +86,9 @@ export interface DynamicFormField {
   strict?: boolean;
   only?: "create" | "update";
   children?: DynamicFormField[];
+  fileTarget?: string;
+  fileMaxSize?: number;
+  fileType?: FileType[] | FileType[][];
 }
 
 function DynamicSelect({
@@ -334,6 +388,132 @@ function DynamicAddress({
   );
 }
 
+function DynamicFile({
+  field,
+  value,
+  onChange,
+  disabled,
+}: {
+  field: DynamicFormField;
+  value: string;
+  onChange: (val: string) => void;
+  disabled?: boolean;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setErrorMsg("");
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (field.fileMaxSize && file.size > field.fileMaxSize) {
+      setErrorMsg(
+        `Ukuran file melebihi batas ${(field.fileMaxSize / (1024 * 1024)).toFixed(2)} MB`,
+      );
+      e.target.value = "";
+      return;
+    }
+
+    if (field.fileType && field.fileType.length > 0) {
+      if (!field.fileType.includes(file.type as FileType)) {
+        setErrorMsg(
+          `Tipe file tidak valid. Diperbolehkan: ${field.fileType.join(", ")}`,
+        );
+        e.target.value = "";
+        return;
+      }
+    }
+
+    if (!field.fileTarget) {
+      console.error("fileTarget is missing");
+      return;
+    }
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    satellite
+      .post(`/api/upload/${field.fileTarget}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => {
+        if (res.data.status === 200 && res.data.data?.path) {
+          onChange(res.data.data.path);
+        }
+      })
+      .catch((err) => {
+        console.error("Upload failed", err);
+        setErrorMsg("Gagal mengunggah file. Silakan coba lagi.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const renderPreview = () => {
+    if (!value) return null;
+
+    const lowerValue = value.toLowerCase();
+    const isImage = lowerValue.match(/\.(jpeg|jpg|gif|png|webp|svg)$/) != null;
+    const isAudio = lowerValue.match(/\.(mp3|wav|ogg|m4a)$/) != null;
+    const isVideo = lowerValue.match(/\.(mp4|webm|mov)$/) != null;
+
+    if (isImage) {
+      return (
+        <div className="mt-2 relative w-24 h-24 rounded-lg overflow-hidden border border-dark-600 bg-dark-900/50">
+          <img
+            src={value}
+            alt="Preview"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      );
+    }
+    if (isAudio) {
+      return (
+        <div className="mt-2">
+          <audio src={value} controls className="w-full h-12" />
+        </div>
+      );
+    }
+    if (isVideo) {
+      return (
+        <div className="mt-2">
+          <video
+            src={value}
+            controls
+            className="w-full max-w-sm rounded-lg border border-dark-600 bg-dark-900/50"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <span className="text-xs text-neon-green break-all mt-1 block">
+        Uploaded: {value}
+      </span>
+    );
+  };
+
+  return (
+    <div className="mt-1.5 flex flex-col gap-2">
+      <Input
+        id={`field-${field.key}`}
+        type="file"
+        onChange={handleFileChange}
+        disabled={disabled || loading}
+        className={loading ? "opacity-50" : ""}
+        accept={field.fileType?.join(",")}
+      />
+      {errorMsg && <span className="text-xs text-neon-red">{errorMsg}</span>}
+      {loading && <span className="text-xs text-accent-500">Uploading...</span>}
+      {!loading && renderPreview()}
+    </div>
+  );
+}
+
 function ArrayField({
   field,
   value,
@@ -416,6 +596,12 @@ function ArrayField({
                   />
                 ) : child.type === "address" ? (
                   <DynamicAddress
+                    value={String(item[child.key] ?? "")}
+                    onChange={(val) => handleChildChange(index, child.key, val)}
+                  />
+                ) : child.type === "file" ? (
+                  <DynamicFile
+                    field={child}
                     value={String(item[child.key] ?? "")}
                     onChange={(val) => handleChildChange(index, child.key, val)}
                   />
@@ -630,6 +816,12 @@ export default function DynamicForm({
             />
           ) : field.type === "address" ? (
             <DynamicAddress
+              value={String(formData[field.key] ?? "")}
+              onChange={(val) => onChange(field.key, val)}
+            />
+          ) : field.type === "file" ? (
+            <DynamicFile
+              field={field}
               value={String(formData[field.key] ?? "")}
               onChange={(val) => onChange(field.key, val)}
             />

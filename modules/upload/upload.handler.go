@@ -1,27 +1,51 @@
 package upload
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"react-go/dto"
+	"react-go/variable"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
-func uploader(c *fiber.Ctx, base string) {
-	// pwd
-	pwd, _ := os.Getwd()
+func uploader(c *fiber.Ctx, base string) (string, error) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return "", err
+	}
 
-	// path join upload
-	filePath := filepath.Join(pwd, "uploads", base)
+	dirPath := filepath.Join(variable.UploadsPath, base)
 
-	// check if not exist, create dir
-	os.MkdirAll(filePath, 0755)
+	if err := os.MkdirAll(dirPath, 0755); err != nil {
+		return "", err
+	}
 
-	// save file
-	c.SaveFile()
+	// Generate unique filename
+	ext := filepath.Ext(file.Filename)
+	uniqueId, _ := uuid.NewV7()
+	timestamp := time.Now().UnixMilli()
+	filename := fmt.Sprintf("%s_%d%s", strings.ReplaceAll(uniqueId.String(), "-", ""), timestamp, ext)
+
+	savePath := filepath.Join(dirPath, filename)
+	if err := c.SaveFile(file, savePath); err != nil {
+		return "", err
+	}
+
+	// Return public URL path
+	return fmt.Sprintf("/upload/%s/%s", base, filename), nil
 }
 
 func Profile(c *fiber.Ctx) error {
-	return dto.OK(c, "Hello World!", nil)
+	path, err := uploader(c, "profile")
+	if err != nil {
+		return dto.BadRequest(c, "Failed to upload file", err.Error())
+	}
+	return dto.OK(c, "Success upload file", fiber.Map{
+		"path": path,
+	})
 }
