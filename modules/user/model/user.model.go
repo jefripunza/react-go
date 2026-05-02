@@ -37,10 +37,11 @@ func (s *User) BeforeCreate(tx *gorm.DB) error {
 func (s *User) Map() map[string]any {
 	return map[string]any{
 		"id":         s.ID,
-		"name":       s.Name,
-		"avatar":     s.Avatar,
 		"username":   s.Username,
 		"role":       s.Role,
+		"name":       s.Name,
+		"avatar":     s.Avatar,
+		"address":    s.Address,
 		"is_active":  s.IsActive,
 		"created_at": s.CreatedAt,
 	}
