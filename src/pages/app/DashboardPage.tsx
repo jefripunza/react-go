@@ -177,6 +177,7 @@ export default function DashboardPage({}: DashboardPageProps) {
   // Widget CRUD state
   const [roleWidgets, setRoleWidgets] = useState<DashboardWidget[]>([]);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addStep, setAddStep] = useState<1 | 2>(1);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editingWidget, setEditingWidget] = useState<DashboardWidget | null>(
@@ -187,9 +188,21 @@ export default function DashboardPage({}: DashboardPageProps) {
   );
   const [formType, setFormType] = useState("");
   const [formCol, setFormCol] = useState(12);
+  const [formKey, setFormKey] = useState("");
   const [formLabel, setFormLabel] = useState("");
   const [formDesc, setFormDesc] = useState("");
   const [selectedWidgetKey, setSelectedWidgetKey] = useState("");
+
+  // Sync formKey from formLabel with debounce/slugify behavior
+  useEffect(() => {
+    if (addStep === 2 && formLabel && !formKey) {
+      const slug = formLabel
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/(^_|_$)/g, "");
+      setFormKey(slug);
+    }
+  }, [formLabel, addStep]);
 
   const fetchWidgets = useCallback((roleId: string) => {
     if (!roleId || roleId === "" || roleId === "-") return;
@@ -203,6 +216,16 @@ export default function DashboardPage({}: DashboardPageProps) {
     fetchWidgets(selectedRole);
   }, [selectedRole, fetchWidgets]);
 
+  const resetForm = () => {
+    setAddStep(1);
+    setSelectedWidgetKey("");
+    setFormKey("");
+    setFormLabel("");
+    setFormDesc("");
+    setFormCol(12);
+    setFormType("");
+  };
+
   const handleCreate = async () => {
     const w = widgets.find((w) => w.key === selectedWidgetKey);
     if (!w || !selectedRole) return;
@@ -210,14 +233,14 @@ export default function DashboardPage({}: DashboardPageProps) {
       await dashboardService.createWidget({
         role_id: Number(selectedRole),
         component_key: w.key,
-        key: w.key + "_" + Date.now(),
+        key: formKey || w.key + "_" + Date.now(),
         type: w.type,
-        col: 12,
-        label: w.label,
-        description: "",
+        col: formCol,
+        label: formLabel || w.label,
+        description: formDesc,
       });
       setAddModalOpen(false);
-      setSelectedWidgetKey("");
+      resetForm();
       fetchWidgets(selectedRole);
     } catch (err) {
       console.error("Failed to create widget:", err);
@@ -806,41 +829,178 @@ export default function DashboardPage({}: DashboardPageProps) {
 
       {/* Add Widget Modal */}
       <Dialog open={addModalOpen} onClose={() => {}}>
-        <DialogContent onClose={() => setAddModalOpen(false)}>
+        <DialogContent
+          onClose={() => {
+            setAddModalOpen(false);
+            resetForm();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               {language({ id: "Tambah Widget", en: "Add Widget" })}
             </DialogTitle>
             <DialogDescription>
-              {language({
-                id: "Pilih jenis widget untuk ditambahkan",
-                en: "Select widget type to add",
-              })}
+              {addStep === 1
+                ? language({
+                    id: "Pilih jenis widget untuk ditambahkan",
+                    en: "Select widget type to add",
+                  })
+                : language({
+                    id: "Konfigurasi detail widget",
+                    en: "Configure widget details",
+                  })}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
-            {widgets.map((w) => (
-              <button
-                key={w.key}
-                onClick={() => setSelectedWidgetKey(w.key)}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  selectedWidgetKey === w.key
-                    ? "border-accent-500 bg-accent-500/10 text-foreground"
-                    : "border-dark-600/40 bg-dark-700/30 text-dark-300 hover:border-dark-500/60 hover:text-foreground"
+
+          {/* Stepper indicator */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                  addStep >= 1
+                    ? "bg-accent-500 border-accent-500 text-white shadow-lg shadow-accent-500/20"
+                    : "border-dark-600 text-dark-400"
                 }`}
               >
-                <p className="text-sm font-semibold">{w.label}</p>
-                <p className="text-xs text-dark-400 mt-1">{w.type}</p>
-              </button>
-            ))}
+                {addStep > 1 ? <RiPulseLine className="w-4 h-4" /> : "1"}
+              </div>
+            </div>
+            <div
+              className={`h-0.5 w-12 mx-2 rounded ${addStep >= 2 ? "bg-accent-500" : "bg-dark-600"}`}
+            />
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+                  addStep >= 2
+                    ? "bg-accent-500 border-accent-500 text-white shadow-lg shadow-accent-500/20"
+                    : "border-dark-600 text-dark-400"
+                }`}
+              >
+                2
+              </div>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setAddModalOpen(false)}>
-              {language({ id: "Batal", en: "Cancel" })}
-            </Button>
-            <Button onClick={handleCreate} disabled={!selectedWidgetKey}>
-              {language({ id: "Tambah", en: "Add" })}
-            </Button>
+
+          <div className="min-h-[300px]">
+            {addStep === 1 ? (
+              <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto p-1 animate-fade-in">
+                {widgets.map((w) => (
+                  <button
+                    key={w.key}
+                    onClick={() => {
+                      setSelectedWidgetKey(w.key);
+                      setAddStep(2);
+                    }}
+                    className={`p-4 rounded-xl border text-left transition-all ${
+                      selectedWidgetKey === w.key
+                        ? "border-accent-500 bg-accent-500/10 text-foreground"
+                        : "border-dark-600/40 bg-dark-700/30 text-dark-300 hover:border-dark-500/60 hover:text-foreground"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold">{w.label}</p>
+                    <p className="text-xs text-dark-400 mt-1 uppercase tracking-wider">
+                      {w.type}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4 animate-fade-in">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-dark-300 mb-1.5 uppercase tracking-wider">
+                      {language({ id: "Label", en: "Label" })}
+                    </label>
+                    <input
+                      type="text"
+                      value={formLabel}
+                      onChange={(e) => setFormLabel(e.target.value)}
+                      placeholder="My Widget"
+                      className="w-full px-4 py-2.5 rounded-xl bg-dark-900/60 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-dark-300 mb-1.5 uppercase tracking-wider">
+                      {language({ id: "ID / Key", en: "ID / Key" })}
+                    </label>
+                    <input
+                      type="text"
+                      value={formKey}
+                      onChange={(e) => setFormKey(e.target.value)}
+                      placeholder="widget_key"
+                      className="w-full px-4 py-2.5 rounded-xl bg-dark-900/60 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500 transition-all font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-dark-300 mb-1.5 uppercase tracking-wider">
+                    {language({ id: "Deskripsi", en: "Description" })}
+                  </label>
+                  <textarea
+                    value={formDesc}
+                    onChange={(e) => setFormDesc(e.target.value)}
+                    placeholder={language({
+                      id: "Opsional deskripsi widget",
+                      en: "Optional widget description",
+                    })}
+                    rows={2}
+                    className="w-full px-4 py-2.5 rounded-xl bg-dark-900/60 border border-dark-600/40 text-foreground text-sm focus:outline-none focus:border-accent-500 transition-all resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-dark-300 mb-1.5 uppercase tracking-wider">
+                    {language({ id: "Lebar Kolom", en: "Column Width" })} (
+                    {formCol}/12)
+                  </label>
+                  <input
+                    type="range"
+                    min={1}
+                    max={12}
+                    step={1}
+                    value={formCol}
+                    onChange={(e) => setFormCol(Number(e.target.value))}
+                    className="w-full h-1.5 bg-dark-600 rounded-lg appearance-none cursor-pointer accent-accent-500"
+                  />
+                  <div className="flex justify-between mt-1 text-[10px] text-dark-400 font-medium">
+                    <span>1</span>
+                    <span>3</span>
+                    <span>6</span>
+                    <span>9</span>
+                    <span>12</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="mt-6 border-t border-dark-600/30 pt-4">
+            {addStep === 2 ? (
+              <Button
+                variant="ghost"
+                onClick={() => setAddStep(1)}
+                className="mr-auto"
+              >
+                {language({ id: "Kembali", en: "Back" })}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setAddModalOpen(false);
+                  resetForm();
+                }}
+              >
+                {language({ id: "Batal", en: "Cancel" })}
+              </Button>
+            )}
+
+            {addStep === 2 && (
+              <Button onClick={handleCreate} disabled={!formKey || !formLabel}>
+                {language({ id: "Tambah", en: "Add" })}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
