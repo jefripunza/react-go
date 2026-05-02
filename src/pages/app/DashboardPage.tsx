@@ -129,17 +129,18 @@ export default function DashboardPage({}: DashboardPageProps) {
             })}
           </p>
         </div>
-        <div className="w-full sm:w-72 flex">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           {/* Button Add Widget on left side select role */}
           <Button
             // onClick={() => setAddWidgetOpen(true)}
-            className="w-full mb-4"
+            className="shrink-0 whitespace-nowrap"
           >
             {language({ id: "Tambah Widget", en: "Add Widget" })}
           </Button>
 
           {/* Select Role on SU */}
-          <SearchableSelect
+          <div className="w-full sm:w-64">
+            <SearchableSelect
             options={[
               {
                 label: language({ id: "--Contoh--", en: "--Example--" }),
@@ -164,6 +165,7 @@ export default function DashboardPage({}: DashboardPageProps) {
           />
         </div>
       </div>
+    </div>
 
       {selectedRole === "" && (
         <div className="flex items-center justify-center">
