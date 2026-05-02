@@ -25,6 +25,7 @@ export default defineConfig([
       "no-empty-pattern": "off",
       "@typescript-eslint/no-unsafe-function-type": "off",
       "@typescript-eslint/ban-ts-comment": "off",
+      "react-refresh/only-export-components": "off",
     },
   },
 ]);

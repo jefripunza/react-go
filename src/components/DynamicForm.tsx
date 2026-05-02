@@ -36,22 +36,22 @@ export enum FileType {
   Csv = "text/csv",
 }
 
-export enum FileTypeGroup {
-  Images = [
+export const FileTypeGroup = {
+  Images: [
     FileType.Jpeg,
     FileType.Png,
     FileType.Gif,
     FileType.Webp,
     FileType.Svg,
   ],
-  Audios = [
+  Audios: [
     FileType.AudioMpeg,
     FileType.AudioWav,
     FileType.AudioOgg,
     FileType.AudioWebm,
   ],
-  Videos = [FileType.Mp4, FileType.Webm, FileType.Ogg],
-  Documents = [
+  Videos: [FileType.Mp4, FileType.Webm, FileType.Ogg],
+  Documents: [
     FileType.Pdf,
     FileType.Doc,
     FileType.Docx,
@@ -61,7 +61,7 @@ export enum FileTypeGroup {
     FileType.TextPlain,
     FileType.Csv,
   ],
-}
+} as const;
 
 export interface DynamicFormField {
   key: string;
@@ -88,7 +88,7 @@ export interface DynamicFormField {
   children?: DynamicFormField[];
   fileTarget?: string;
   fileMaxSize?: number;
-  fileType?: FileType[] | FileType[][];
+  fileType?: (FileType | FileType[])[];
 }
 
 function DynamicSelect({
@@ -415,10 +415,15 @@ function DynamicFile({
       return;
     }
 
-    if (field.fileType && field.fileType.length > 0) {
-      if (!field.fileType.includes(file.type as FileType)) {
+    let allowedTypes: FileType[] = [];
+    if (field.fileType) {
+      allowedTypes = field.fileType.flat() as FileType[];
+    }
+
+    if (allowedTypes.length > 0) {
+      if (!allowedTypes.includes(file.type as FileType)) {
         setErrorMsg(
-          `Tipe file tidak valid. Diperbolehkan: ${field.fileType.join(", ")}`,
+          `Tipe file tidak valid. Diperbolehkan: ${allowedTypes.join(", ")}`,
         );
         e.target.value = "";
         return;
@@ -505,7 +510,7 @@ function DynamicFile({
         onChange={handleFileChange}
         disabled={disabled || loading}
         className={loading ? "opacity-50" : ""}
-        accept={field.fileType?.join(",")}
+        accept={field.fileType ? field.fileType.flat().join(",") : undefined}
       />
       {errorMsg && <span className="text-xs text-neon-red">{errorMsg}</span>}
       {loading && <span className="text-xs text-accent-500">Uploading...</span>}
