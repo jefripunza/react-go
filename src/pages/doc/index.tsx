@@ -10,6 +10,13 @@ import {
 } from "react-icons/ri";
 import { Link } from "react-router";
 
+import Introduction from "@/pages/doc/Introduction";
+import QuickStart from "@/pages/doc/QuickStart";
+import ProjectStructure from "@/pages/doc/ProjectStructure";
+import TechStack from "@/pages/doc/TechStack";
+import Theming from "@/pages/doc/Theming";
+import AddingPages from "@/pages/doc/AddingPages";
+
 interface DocSection {
   id: string;
   label: string;
@@ -32,84 +39,12 @@ const sections: DocSection[] = [
       {
         id: "introduction",
         title: "Introduction",
-        content: (
-          <div className="space-y-4">
-            <p>
-              Welcome to the <strong>Base Project</strong> documentation. This
-              project is a starter template for building full-stack web
-              applications with <strong>React</strong> (frontend) and{" "}
-              <strong>Go</strong> (backend).
-            </p>
-            <h3>Features</h3>
-            <ul>
-              <li>
-                <strong>React + Vite</strong> — Fast dev server with HMR and
-                optimized production builds.
-              </li>
-              <li>
-                <strong>Go Backend</strong> — Compiled binary with embedded
-                frontend via <code>embed.FS</code>.
-              </li>
-              <li>
-                <strong>TailwindCSS v4</strong> — Utility-first CSS with dark
-                mode support.
-              </li>
-              <li>
-                <strong>Authentication</strong> — Built-in login flow with token
-                validation.
-              </li>
-              <li>
-                <strong>Dark / Light Mode</strong> — Theme toggle with
-                persistent state.
-              </li>
-              <li>
-                <strong>Responsive Layout</strong> — Collapsible sidebar with
-                mobile support.
-              </li>
-            </ul>
-          </div>
-        ),
+        content: <Introduction />,
       },
       {
         id: "quick-start",
         title: "Quick Start",
-        content: (
-          <div className="space-y-4">
-            <p>Get the project up and running in a few steps:</p>
-            <h3>Prerequisites</h3>
-            <ul>
-              <li>
-                <strong>Node.js</strong> ≥ 18 (or Bun)
-              </li>
-              <li>
-                <strong>Go</strong> ≥ 1.21
-              </li>
-            </ul>
-            <h3>Installation</h3>
-            <CodeBlock>{`# Clone the repository
-git clone https://github.com/jefripunza/react-go.git
-cd react-go
-
-# Install frontend dependencies
-bun install   # or: npm install
-
-# Run in development mode
-bun run dev   # or: npm run dev
-
-# Build for production
-bun run build # or: npm run build`}</CodeBlock>
-            <h3>Running the Go Backend</h3>
-            <CodeBlock>{`# Download Go dependencies
-go mod download
-
-# Run the server
-go run main.go
-
-# Build binary
-go build -o react-go main.go
-./react-go`}</CodeBlock>
-          </div>
-        ),
+        content: <QuickStart />,
       },
     ],
   },
@@ -121,84 +56,12 @@ go build -o react-go main.go
       {
         id: "folder-structure",
         title: "Folder Structure",
-        content: (
-          <div className="space-y-4">
-            <p>The project follows a standard React + Go layout:</p>
-            <CodeBlock>{`react-go/
-├── src/                    # React frontend source
-│   ├── components/         # Reusable UI components
-│   ├── layouts/            # Layout wrappers (App, Auth, Main)
-│   ├── pages/              # Page components
-│   │   ├── app/            # Authenticated pages
-│   │   ├── auth/           # Login page
-│   │   └── error/          # Error pages
-│   ├── stores/             # Zustand state stores
-│   ├── services/           # API service layer
-│   ├── lib/                # Utility libraries
-│   ├── types/              # TypeScript type definitions
-│   └── main.tsx            # App entry point & routing
-├── main.go                 # Go backend entry point
-├── dist/                   # Production build output
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── Dockerfile`}</CodeBlock>
-          </div>
-        ),
+        content: <ProjectStructure />,
       },
       {
         id: "tech-stack",
         title: "Tech Stack",
-        content: (
-          <div className="space-y-4">
-            <table>
-              <thead>
-                <tr>
-                  <th>Layer</th>
-                  <th>Technology</th>
-                  <th>Purpose</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Frontend</td>
-                  <td>React 19 + Vite</td>
-                  <td>UI framework with fast builder</td>
-                </tr>
-                <tr>
-                  <td>Styling</td>
-                  <td>TailwindCSS v4</td>
-                  <td>Utility-first CSS</td>
-                </tr>
-                <tr>
-                  <td>State</td>
-                  <td>Zustand</td>
-                  <td>Lightweight state management</td>
-                </tr>
-                <tr>
-                  <td>Icons</td>
-                  <td>react-icons</td>
-                  <td>Icon library</td>
-                </tr>
-                <tr>
-                  <td>HTTP</td>
-                  <td>Axios</td>
-                  <td>API client</td>
-                </tr>
-                <tr>
-                  <td>Backend</td>
-                  <td>Go</td>
-                  <td>API server with embedded frontend</td>
-                </tr>
-                <tr>
-                  <td>Routing</td>
-                  <td>React Router v7</td>
-                  <td>Client-side routing</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        ),
+        content: <TechStack />,
       },
     ],
   },
@@ -210,86 +73,16 @@ go build -o react-go main.go
       {
         id: "theming",
         title: "Theming",
-        content: (
-          <div className="space-y-4">
-            <p>
-              Themes are defined in <code>src/index.css</code> using CSS custom
-              properties. The project supports both dark and light modes.
-            </p>
-            <h3>Color Variables</h3>
-            <CodeBlock>{`/* Dark mode (default) */
-:root {
-  --t-dark-900: #0a0a0f;
-  --t-dark-800: #12121a;
-  --t-foreground: #ffffff;
-}
-
-/* Light mode */
-:root[data-theme="light"] {
-  --t-dark-900: #ffffff;
-  --t-dark-800: #f1f3f8;
-  --t-foreground: #111827;
-}`}</CodeBlock>
-            <p>
-              The theme toggle is managed by{" "}
-              <code>src/stores/themeStore.ts</code> and persisted via Zustand's{" "}
-              <code>persist</code> middleware.
-            </p>
-          </div>
-        ),
+        content: <Theming />,
       },
       {
         id: "adding-pages",
         title: "Adding Pages",
-        content: (
-          <div className="space-y-4">
-            <p>To add a new authenticated page:</p>
-            <h3>1. Create the Page Component</h3>
-            <CodeBlock>{`// src/pages/app/MyPage.tsx
-export default function MyPage() {
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h2 className="text-xl font-bold text-foreground">
-          My Page
-        </h2>
-        <p className="text-sm text-dark-300 mt-1">
-          Description here
-        </p>
-      </div>
-      {/* Your content */}
-    </div>
-  );
-}`}</CodeBlock>
-            <h3>2. Add the Route</h3>
-            <CodeBlock>{`// src/main.tsx — add inside the "app" children array
-{
-  path: "my-page",
-  element: <MyPage />,
-}`}</CodeBlock>
-            <h3>3. Add to Sidebar Navigation</h3>
-            <CodeBlock>{`// src/layouts/AppLayout.tsx — add to navItems
-{
-  label: "My Page",
-  path: "/app/my-page",
-  icon: RiPageLine,
-}`}</CodeBlock>
-          </div>
-        ),
+        content: <AddingPages />,
       },
     ],
   },
 ];
-
-// ─── Sub-components ─────────────────────────────────────────────────────────
-
-function CodeBlock({ children }: { children: string }) {
-  return (
-    <pre className="bg-dark-900/80 border border-dark-600/40 rounded-xl p-4 overflow-x-auto text-xs font-mono text-neon-green leading-relaxed whitespace-pre">
-      {children}
-    </pre>
-  );
-}
 
 // ─── Main page ───────────────────────────────────────────────────────────────
 

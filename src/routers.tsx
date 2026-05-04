@@ -28,7 +28,7 @@ import SettingsPage from "@/pages/app/settings/SettingPage";
 import NotificationsPage from "@/pages/app/notifications/NotificationsPage";
 
 // Documentation
-import DocPage from "@/pages/DocPage";
+import DocPage from "@/pages/doc";
 
 // Errors
 import ErrorBoundaryPage from "@/pages/error/ErrorBoundaryPage";
