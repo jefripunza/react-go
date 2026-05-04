@@ -1,0 +1,76 @@
+package modules
+
+import (
+	"react-go/core/middlewares"
+	"react-go/core/modules/address"
+	"react-go/core/modules/apikey"
+	"react-go/core/modules/auth"
+	"react-go/core/modules/dashboard"
+	"react-go/core/modules/debounce"
+	"react-go/core/modules/event"
+	"react-go/core/modules/example"
+	"react-go/core/modules/master_data"
+	"react-go/core/modules/notification"
+	"react-go/core/modules/option"
+	"react-go/core/modules/role"
+	"react-go/core/modules/rule"
+	"react-go/core/modules/setting"
+	"react-go/core/modules/upload"
+	"react-go/core/modules/user"
+	"react-go/core/modules/whitelist"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func SetupRoutes(app *fiber.App, api fiber.Router) {
+	// Root (Hello World)
+	example.PublicRoute(app)
+
+	// Address
+	address.PublicRoute(api.Group("/address"))
+
+	// Auth
+	auth.PublicRoute(api.Group("/auth"))
+	auth.ProtectedRoute(api.Group("/auth", middlewares.UseToken))
+
+	// User
+	user.ProtectedRoute(api.Group("/user", middlewares.UseToken))
+
+	// Upload
+	upload.ProtectedRoute(api.Group("/upload", middlewares.UseToken))
+
+	// Event
+	event.ProtectedRoute(api.Group("/event", middlewares.UseQueryToken))
+
+	// Setting
+	setting.ProtectedRoute(api.Group("/setting", middlewares.UseToken))
+
+	// Role
+	role.ProtectedRoute(api.Group("/role", middlewares.UseToken))
+
+	// Rule
+	rule.ProtectedRoute(api.Group("/rule", middlewares.UseToken))
+
+	// Notification
+	notification.ProtectedRoute(api.Group("/notification", middlewares.UseToken))
+
+	// Whitelist
+	whitelist.ProtectedRoute(api.Group("/whitelist", middlewares.UseToken))
+
+	// API Key
+	apikey.ProtectedRoute(api.Group("/apikey", middlewares.UseToken))
+
+	// Dashboard
+	dashboard.PublicRoute(api.Group("/dashboard"))
+	dashboard.ProtectedRoute(api.Group("/dashboard", middlewares.UseToken))
+
+	// Master Data
+	master_data.ProtectedRoute(api.Group("/master-data", middlewares.UseToken))
+
+	// Option
+	option.PublicRoute(api.Group("/option"))
+	option.ProtectedRoute(api.Group("/option", middlewares.UseToken))
+
+	// Debounce
+	debounce.ProtectedRoute(api.Group("/debounce", middlewares.UseToken))
+}
