@@ -61,6 +61,7 @@ func SetupRoutes(app *fiber.App, api fiber.Router) {
 	apikey.ProtectedRoute(api.Group("/apikey", middlewares.UseToken))
 
 	// Dashboard
+	dashboard.PublicRoute(api.Group("/dashboard"))
 	dashboard.ProtectedRoute(api.Group("/dashboard", middlewares.UseToken))
 
 	// Master Data

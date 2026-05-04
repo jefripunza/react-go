@@ -104,9 +104,9 @@ const techStack = [
     link: "https://gorm.io/",
   },
   {
-    label: "Socket.IO",
+    label: "SSE",
     color: "text-accent-400",
-    link: "https://socket.io/",
+    link: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
   },
   {
     label: "Docker",

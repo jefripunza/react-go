@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"react-go/dto"
 	"react-go/function"
 	"react-go/sse"
 	"react-go/variable"
@@ -102,23 +103,12 @@ func Stream(c *fiber.Ctx) error {
 }
 
 func Dashboard(c *fiber.Ctx) error {
-	token := c.Query("token")
-	if token == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"success": false,
-			"message": "token is required",
-		})
-	}
-
-	claims, err := function.JwtValidateToken(token)
+	existing, err := function.JwtGetUser(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"success": false,
-			"message": "invalid token",
-		})
+		return dto.Unauthorized(c, "Unauthorized", nil)
 	}
 
-	connectedUserID := claims.ID
+	connectedUserID := existing.ID
 	clientChan := make(chan string, 100)
 
 	// Since a user might have multiple dashboard tabs, use a unique ID for the client

@@ -13,7 +13,31 @@ import (
 )
 
 func ListFunctions(c *fiber.Ctx) error {
-	return dto.OK(c, "Functions retrieved successfully", nil)
+	return dto.OK(c, "Functions retrieved successfully", functions)
+}
+
+func ExecuteFunction(c *fiber.Ctx) error {
+	_type := c.Params("type")
+	if _type == "" {
+		return dto.BadRequest(c, "type is required", nil)
+	}
+	key := c.Params("key")
+	if key == "" {
+		return dto.BadRequest(c, "key is required", nil)
+	}
+
+	function, err := findFunction(_type, key)
+	if err != nil {
+		return dto.InternalServerError(c, err.Error(), nil)
+	}
+
+	return dto.OK(c, "Functions retrieved successfully", function(FunctionRequest{
+		RoleID: 1,
+		UserID: "1",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+	}))
 }
 
 type DashboardStats struct {
