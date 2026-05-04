@@ -13,6 +13,7 @@ import (
 	"time"
 
 	notification "react-go/core/modules/notification/model"
+	role "react-go/core/modules/role/model"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -107,8 +108,23 @@ func Dashboard(c *fiber.Ctx) error {
 	if err != nil {
 		return dto.Unauthorized(c, "Unauthorized", nil)
 	}
-
 	connectedUserID := existing.ID
+
+	roleID := c.Query("role_id")
+
+	var exist int64
+	if err := variable.Db.
+		Where("role_id = ? AND user_id = ?", roleID, connectedUserID).
+		Select("id").
+		Find(&role.RoleUser{}).
+		Count(&exist).
+		Error; err != nil {
+		return dto.InternalServerError(c, "Failed to get roles", nil)
+	}
+	if exist == 0 {
+		return dto.Unauthorized(c, "Unauthorized", nil)
+	}
+
 	clientChan := make(chan string, 100)
 
 	// Since a user might have multiple dashboard tabs, use a unique ID for the client

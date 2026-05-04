@@ -142,16 +142,22 @@ export default function DashboardPage({}: DashboardPageProps) {
   const { user } = useAuthStore();
   const { role_selected } = useRuleStore();
 
+  const [roles, setRoles] = useState<Option[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(
+    user?.role !== "su" ? role_selected?.role_id || "" : "",
+  );
+
   useEffect(() => {
     fetchStats();
-
+  }, [fetchStats]);
+  useEffect(() => {
+    if (!selectedRole || selectedRole == "-") return;
     const token = localStorage.getItem("token");
     if (!token) return;
-
     const es = new EventSource(
-      `${HOST_API}/api/event/dashboard?token=${token}`,
+      `${HOST_API}/api/event/dashboard?token=${token}&role_id=${selectedRole}`,
     );
-
     es.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
@@ -162,17 +168,10 @@ export default function DashboardPage({}: DashboardPageProps) {
         console.error("Failed to parse dashboard SSE data:", e);
       }
     };
-
     return () => {
       es.close();
     };
-  }, [fetchStats, setStats]);
-
-  const [roles, setRoles] = useState<Option[]>([]);
-  const [loadingRoles, setLoadingRoles] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(
-    user?.role !== "su" ? role_selected?.role_id || "" : "",
-  );
+  }, [setStats, selectedRole]);
 
   useEffect(() => {
     if (user?.role !== "su") {
@@ -845,6 +844,7 @@ export default function DashboardPage({}: DashboardPageProps) {
           </div>
         </Fragment>
       )}
+
       {/* Dynamic widget list from API */}
       {!(selectedRole === "" || selectedRole === "-") && (
         <div className="grid grid-cols-12 gap-4">
