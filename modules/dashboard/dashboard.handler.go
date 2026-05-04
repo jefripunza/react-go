@@ -12,6 +12,10 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+func ListFunctions(c *fiber.Ctx) error {
+	return dto.OK(c, "Functions retrieved successfully", nil)
+}
+
 type DashboardStats struct {
 	TotalQueues    int64 `json:"total_queues"`
 	TotalMessages  int64 `json:"total_messages"`
@@ -147,7 +151,6 @@ func WidgetList(c *fiber.Ctx) error {
 			"col":           col,
 			"label":         widget.Label,
 			"description":   widget.Description,
-			"value":         widget.Value,
 		})
 	}
 

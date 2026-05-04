@@ -1,16 +1,34 @@
 package dashboard
 
 var functions = Function{
-	Timeline: []func(req FunctionRequest) FunctionItem{
-		TestFunctionTimeline,
+	Timeline: []FunctionItem{
+		{
+			Label:    "Stok Barang",
+			Key:      "stock_barang",
+			Function: TestFunctionTimeline,
+		},
 	},
 }
 
+/*
+{
+	"functions": {
+		"timeline": [
+			{
+				"label": "Stok Barang",
+				"key": "stock_barang",
+				"function": ""
+			}
+		]
+	}
+}
+*/
+
 // -------------------------------------------------------- //
 // -------------------------------------------------------- //
 
-func TestFunctionTimeline(req FunctionRequest) FunctionItem {
-	return FunctionItem{
+func TestFunctionTimeline(req FunctionRequest) FunctionResponse {
+	return FunctionResponse{
 		Body: "test",
 	}
 }

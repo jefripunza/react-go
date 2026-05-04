@@ -16,7 +16,6 @@ type DashboardWidget struct {
 	Col          string    `json:"col" gorm:"type:text;not null"`
 	Label        string    `json:"label" gorm:"type:varchar(255);not null"`
 	Description  string    `json:"description" gorm:"type:varchar(255)"`
-	Value        float64   `json:"value" gorm:"type:decimal(10,2);not null;default:0"`
 	// relations
 	Role role.Role `json:"role" gorm:"foreignKey:RoleID;references:ID;constraint:OnDelete:CASCADE"`
 }
@@ -34,6 +33,5 @@ func (s *DashboardWidget) Map() map[string]any {
 		"id":      s.ID,
 		"role_id": s.RoleID,
 		"key":     s.Key,
-		"value":   s.Value,
 	}
 }

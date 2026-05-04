@@ -3,6 +3,7 @@ package dashboard
 import "github.com/gofiber/fiber/v2"
 
 func ProtectedRoute(r fiber.Router) {
+	r.Get("/functions", ListFunctions)
 	r.Get("/stats", GetStats)
 
 	// CRUD Widget
