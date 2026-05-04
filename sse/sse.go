@@ -27,15 +27,7 @@ var AppHub = Hub{
 }
 
 func Init() {
-	go func() {
-		ticker := time.NewTicker(1 * time.Second)
-		defer ticker.Stop()
-		for range ticker.C {
-			// live stats
-			stats := fetchLiveStats()
-			BroadcastEvent("live_data", stats)
-		}
-	}()
+	// Dashboard ticker moved to event.handler.go
 
 	go func() {
 		ticker := time.NewTicker(1 * time.Second)
@@ -112,17 +104,3 @@ func liveNotification() {
 	// TODO: implement live notification
 }
 
-type liveStats struct {
-	TotalQueues    int64          `json:"total_queues"`
-	TotalMessages  int64          `json:"total_messages"`
-	TotalCompleted int64          `json:"total_completed"`
-	TotalFailed    int64          `json:"total_failed"`
-	TotalTiming    int64          `json:"total_timing"`
-	TotalPending   int64          `json:"total_pending"`
-	Queue          map[string]int `json:"queue"`
-}
-
-func fetchLiveStats() liveStats {
-	var s liveStats
-	return s
-}

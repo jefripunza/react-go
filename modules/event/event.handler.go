@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"react-go/dto"
 	"react-go/function"
 	"react-go/sse"
 	"react-go/variable"
+	"sync"
 	"time"
 
 	notification "react-go/modules/notification/model"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func Stream(c *fiber.Ctx) error {
@@ -100,6 +101,114 @@ func Stream(c *fiber.Ctx) error {
 	return nil
 }
 
-func HelloWorld(c *fiber.Ctx) error {
-	return dto.OK(c, "Hello World!", nil)
+func Dashboard(c *fiber.Ctx) error {
+	token := c.Query("token")
+	if token == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"message": "token is required",
+		})
+	}
+
+	claims, err := function.JwtValidateToken(token)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success": false,
+			"message": "invalid token",
+		})
+	}
+
+	connectedUserID := claims.ID
+	clientChan := make(chan string, 100)
+
+	// Since a user might have multiple dashboard tabs, use a unique ID for the client
+	clientID := uuid.New().String()
+
+	dashboardHub.Mutex.Lock()
+	dashboardHub.Clients[clientID] = clientChan
+	dashboardHub.Mutex.Unlock()
+
+	log.Printf("✅ SSE: User %s connected to Dashboard", connectedUserID)
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+	c.Set("Transfer-Encoding", "chunked")
+
+	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
+		defer func() {
+			dashboardHub.Mutex.Lock()
+			delete(dashboardHub.Clients, clientID)
+			dashboardHub.Mutex.Unlock()
+			log.Printf("🛸 SSE: User %s disconnected from Dashboard", connectedUserID)
+		}()
+
+		for {
+			select {
+			case msg, ok := <-clientChan:
+				if !ok {
+					return
+				}
+				fmt.Fprintf(w, "data: %s\n\n", msg)
+				if err := w.Flush(); err != nil {
+					return
+				}
+
+			case <-time.After(30 * time.Second):
+				fmt.Fprintf(w, ": ping\n\n")
+				if err := w.Flush(); err != nil {
+					return
+				}
+			}
+		}
+	})
+
+	return nil
+}
+
+// Dashboard Hub
+var dashboardHub = struct {
+	Clients map[string]chan string
+	Mutex   sync.RWMutex
+}{
+	Clients: make(map[string]chan string),
+}
+
+func init() {
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			stats := fetchLiveStats()
+			payloadBytes, _ := json.Marshal(map[string]any{
+				"event": "live_data",
+				"data":  stats,
+			})
+			msg := string(payloadBytes)
+
+			dashboardHub.Mutex.RLock()
+			for _, ch := range dashboardHub.Clients {
+				select {
+				case ch <- msg:
+				default:
+				}
+			}
+			dashboardHub.Mutex.RUnlock()
+		}
+	}()
+}
+
+type liveStats struct {
+	TotalQueues    int64          `json:"total_queues"`
+	TotalMessages  int64          `json:"total_messages"`
+	TotalCompleted int64          `json:"total_completed"`
+	TotalFailed    int64          `json:"total_failed"`
+	TotalTiming    int64          `json:"total_timing"`
+	TotalPending   int64          `json:"total_pending"`
+	Queue          map[string]int `json:"queue"`
+}
+
+func fetchLiveStats() liveStats {
+	var s liveStats
+	return s
 }

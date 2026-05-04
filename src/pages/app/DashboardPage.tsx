@@ -21,6 +21,7 @@ import {
   dashboardService,
   type DashboardWidget,
 } from "@/services/dashboard.service";
+import { HOST_API } from "@/environment";
 import StatCard from "@/components/StatCard";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import {
@@ -141,14 +142,34 @@ Example Response:
 
 interface DashboardPageProps {}
 export default function DashboardPage({}: DashboardPageProps) {
-  const { fetchStats } = useDashboardStore();
+  const { fetchStats, setStats } = useDashboardStore();
   const { language } = useLanguageStore();
   const { user } = useAuthStore();
   const { role_selected } = useRuleStore();
 
   useEffect(() => {
     fetchStats();
-  }, [fetchStats]);
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const es = new EventSource(`${HOST_API}/api/event/dashboard?token=${token}`);
+
+    es.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.event === "live_data") {
+          setStats(payload.data);
+        }
+      } catch (e) {
+        console.error("Failed to parse dashboard SSE data:", e);
+      }
+    };
+
+    return () => {
+      es.close();
+    };
+  }, [fetchStats, setStats]);
 
   const [roles, setRoles] = useState<Option[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(false);
