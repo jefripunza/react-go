@@ -17,7 +17,7 @@ var registerFunctions = types.Function{
 	},
 }
 
-func findFunction(_type string, key string) (func(req types.FunctionRequest) any, error) {
+func FindFunction(_type string, key string) (func(req types.FunctionRequest) any, error) {
 	var function func(req types.FunctionRequest) any
 	switch _type {
 	case "timeline":

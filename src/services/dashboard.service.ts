@@ -25,6 +25,12 @@ export interface DashboardWidget {
 }
 
 export const dashboardService = {
+  getFunctions: async () => {
+    const response = await satellite.get<
+      Response<Record<string, { label: string; key: string }[]>>
+    >("/api/dashboard/functions");
+    return response.data;
+  },
   getStats: async () => {
     const response = await satellite.get<Response<DashboardStats>>(
       "/api/dashboard/stats",

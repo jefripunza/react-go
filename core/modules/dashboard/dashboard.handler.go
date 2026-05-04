@@ -27,7 +27,7 @@ func ExecuteFunction(c *fiber.Ctx) error {
 		return dto.BadRequest(c, "key is required", nil)
 	}
 
-	function, err := findFunction(_type, key)
+	function, err := FindFunction(_type, key)
 	if err != nil {
 		return dto.InternalServerError(c, err.Error(), nil)
 	}

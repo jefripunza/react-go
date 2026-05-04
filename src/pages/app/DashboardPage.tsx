@@ -188,6 +188,15 @@ export default function DashboardPage({}: DashboardPageProps) {
       })
       .catch((err) => console.error("Failed to fetch roles:", err))
       .finally(() => setLoadingRoles(false));
+
+    dashboardService
+      .getFunctions()
+      .then((data) => {
+        setFunctionsData(data.data);
+      })
+      .catch((err) =>
+        console.error("Failed to fetch dashboard functions:", err),
+      );
   }, []);
 
   // Period state for charts
@@ -198,7 +207,7 @@ export default function DashboardPage({}: DashboardPageProps) {
   // Widget CRUD state
   const [roleWidgets, setRoleWidgets] = useState<DashboardWidget[]>([]);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [addStep, setAddStep] = useState<1 | 2>(1);
+  const [addStep, setAddStep] = useState<1 | 2 | 3>(1);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editingWidget, setEditingWidget] = useState<DashboardWidget | null>(
@@ -217,6 +226,10 @@ export default function DashboardPage({}: DashboardPageProps) {
     desktop: 3,
   });
   const [selectedWidgetKey, setSelectedWidgetKey] = useState("");
+  const [selectedFunctionKey, setSelectedFunctionKey] = useState("");
+  const [functionsData, setFunctionsData] = useState<
+    Record<string, { label: string; key: string }[]>
+  >({});
   const [addFormData, setAddFormData] = useState<Record<string, unknown>>({
     label: "",
     key: "",
@@ -294,8 +307,9 @@ export default function DashboardPage({}: DashboardPageProps) {
       }) || { mobile: 12, tablet: 6, laptop: 4, desktop: 3 };
       await dashboardService.createWidget({
         role_id: Number(selectedRole),
-        function_key: w.key,
-        key: (addFormData.key as string) || w.key + "_" + Date.now(),
+        function_key: selectedFunctionKey,
+        key:
+          (addFormData.key as string) || selectedFunctionKey + "_" + Date.now(),
         type: w.type,
         col: {
           mobile: colData.mobile,
@@ -968,6 +982,47 @@ export default function DashboardPage({}: DashboardPageProps) {
                   </button>
                 ))}
               </div>
+            ) : addStep === 2 ? (
+              <div className="grid grid-cols-2 gap-3 max-h-100 overflow-y-auto p-1 animate-fade-in">
+                {(() => {
+                  const selectedWidget = widgets.find(
+                    (w) => w.key === selectedWidgetKey,
+                  );
+                  const funcs =
+                    selectedWidget && functionsData[selectedWidget.type]
+                      ? functionsData[selectedWidget.type]
+                      : [];
+                  if (funcs.length === 0) {
+                    return (
+                      <div className="col-span-2 text-center py-8 text-dark-400">
+                        {language({
+                          id: "Tidak ada fungsi tersedia",
+                          en: "No functions available",
+                        })}
+                      </div>
+                    );
+                  }
+                  return funcs.map((f) => (
+                    <button
+                      key={f.key}
+                      onClick={() => {
+                        setSelectedFunctionKey(f.key);
+                        setAddStep(3);
+                      }}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        selectedFunctionKey === f.key
+                          ? "border-accent-500 bg-accent-500/10 text-foreground"
+                          : "border-dark-600/40 bg-dark-700/30 text-dark-300 hover:border-dark-500/60 hover:text-foreground"
+                      }`}
+                    >
+                      <p className="text-sm font-semibold">{f.label}</p>
+                      <p className="text-xs text-dark-400 mt-1 uppercase tracking-wider">
+                        {f.key}
+                      </p>
+                    </button>
+                  ));
+                })()}
+              </div>
             ) : (
               <div className="animate-fade-in">
                 <DynamicForm
@@ -982,10 +1037,10 @@ export default function DashboardPage({}: DashboardPageProps) {
           </div>
 
           <DialogFooter className="mt-6 border-t border-dark-600/30 pt-4">
-            {addStep === 2 ? (
+            {addStep > 1 ? (
               <Button
                 variant="ghost"
-                onClick={() => setAddStep(1)}
+                onClick={() => setAddStep((prev) => (prev - 1) as 1 | 2 | 3)}
                 className="mr-auto"
               >
                 {language({ id: "Kembali", en: "Back" })}
@@ -1002,7 +1057,7 @@ export default function DashboardPage({}: DashboardPageProps) {
               </Button>
             )}
 
-            {addStep === 2 && (
+            {addStep === 3 && (
               <Button
                 onClick={handleCreate}
                 disabled={!addFormData.key || !addFormData.label}

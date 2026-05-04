@@ -9,11 +9,15 @@ import (
 	"react-go/core/function"
 	"react-go/core/sse"
 	"react-go/core/variable"
+	"strconv"
 	"sync"
 	"time"
 
+	"react-go/core/modules/dashboard"
+	dashboardModel "react-go/core/modules/dashboard/model"
 	notification "react-go/core/modules/notification/model"
 	role "react-go/core/modules/role/model"
+	"react-go/core/types"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -125,13 +129,18 @@ func Dashboard(c *fiber.Ctx) error {
 		return dto.Unauthorized(c, "Unauthorized", nil)
 	}
 
-	clientChan := make(chan string, 100)
+	roleIDUint, _ := strconv.ParseUint(roleID, 10, 32)
+	client := &DashboardClient{
+		Chan:   make(chan string, 100),
+		RoleID: uint(roleIDUint),
+		UserID: connectedUserID.String(),
+	}
 
 	// Since a user might have multiple dashboard tabs, use a unique ID for the client
 	clientID := uuid.New().String()
 
 	dashboardHub.Mutex.Lock()
-	dashboardHub.Clients[clientID] = clientChan
+	dashboardHub.Clients[clientID] = client
 	dashboardHub.Mutex.Unlock()
 
 	log.Printf("✅ SSE: User %s connected to Dashboard", connectedUserID)
@@ -151,7 +160,7 @@ func Dashboard(c *fiber.Ctx) error {
 
 		for {
 			select {
-			case msg, ok := <-clientChan:
+			case msg, ok := <-client.Chan:
 				if !ok {
 					return
 				}
@@ -173,11 +182,17 @@ func Dashboard(c *fiber.Ctx) error {
 }
 
 // Dashboard Hub
+type DashboardClient struct {
+	Chan   chan string
+	RoleID uint
+	UserID string
+}
+
 var dashboardHub = struct {
-	Clients map[string]chan string
+	Clients map[string]*DashboardClient
 	Mutex   sync.RWMutex
 }{
-	Clients: make(map[string]chan string),
+	Clients: make(map[string]*DashboardClient),
 }
 
 func init() {
@@ -185,17 +200,54 @@ func init() {
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
+			// Fetch live stats
 			stats := fetchLiveStats()
-			payloadBytes, _ := json.Marshal(map[string]any{
+			statsBytes, _ := json.Marshal(map[string]any{
 				"event": "live_data",
 				"data":  stats,
 			})
-			msg := string(payloadBytes)
+			statsMsg := string(statsBytes)
 
 			dashboardHub.Mutex.RLock()
-			for _, ch := range dashboardHub.Clients {
+			for _, client := range dashboardHub.Clients {
+				// Send live stats
 				select {
-				case ch <- msg:
+				case client.Chan <- statsMsg:
+				default:
+				}
+
+				// Fetch and evaluate widgets
+				var widgets []dashboardModel.DashboardWidget
+				variable.Db.Where("role_id = ?", client.RoleID).Find(&widgets)
+
+				widgetResults := make([]map[string]any, 0)
+				for _, w := range widgets {
+					fn, err := dashboard.FindFunction(w.Type, w.FunctionKey)
+					if err == nil {
+						res := fn(types.FunctionRequest{
+							RoleID: client.RoleID,
+							UserID: client.UserID,
+							Headers: map[string]string{
+								"Content-Type": "application/json",
+							},
+						})
+						widgetResults = append(widgetResults, map[string]any{
+							"id":   w.ID,
+							"data": res,
+						})
+					}
+				}
+
+				widgetsBytes, _ := json.Marshal(map[string]any{
+					"event": "live_widgets",
+					"data": map[string]any{
+						"widgets": widgetResults,
+					},
+				})
+				widgetsMsg := string(widgetsBytes)
+
+				select {
+				case client.Chan <- widgetsMsg:
 				default:
 				}
 			}

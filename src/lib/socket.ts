@@ -55,7 +55,7 @@ class SSEClient {
   emit(event: string, data?: unknown) {
     // SSE is unidirectional (Server to Client).
     // Mock emit for legacy code that might still call it (like `socket.emit("join", token)`).
-    console.debug(`[SSEClient] Ignored emit for event: ${event}`, data);
+    // console.debug(`[SSEClient] Ignored emit for event: ${event}`, data);
   }
 
   disconnect() {
